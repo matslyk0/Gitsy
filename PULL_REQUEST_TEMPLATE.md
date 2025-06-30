@@ -2,15 +2,15 @@
 
 *Include a summary of the change and what problem it solves. Include relevant motivation and context.*
 
-## Type of Change
+## Type of Change:
 
 *Delete options that are not relevant.*
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
-- [ ] Not a change in code
+- [ ] Bug fix (non-breaking change which fixes an issue).
+- [ ] New feature (non-breaking change which adds functionality).
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected).
+- [ ] This change requires a documentation update.
+- [ ] Not a change in code.
 
 ## How Has This Been Tested?
 
