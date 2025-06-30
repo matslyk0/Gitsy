@@ -2,8 +2,6 @@
 
 *Include a summary of the change and what problem it solves. Include relevant motivation and context.*
 
-A clear and concise description of the changes in this pull request.
-
 ## Type of Change
 
 *Delete options that are not relevant.*
@@ -12,6 +10,7 @@ A clear and concise description of the changes in this pull request.
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] This change requires a documentation update
+- [ ] Not a change in code
 
 ## How Has This Been Tested?
 
@@ -23,8 +22,11 @@ A clear and concise description of the changes in this pull request.
   - *Steps:*
   - 1. ...
   - 2. ...
+- [ ] Tests are not applicable.
 
 ## Checklist:
+
+*Delete options that are not relevant.*
 
 - [ ] My code follows the style guidelines of this project (`DEVELOPMENT.md`).
 - [ ] I have performed a self-review of my own code.
