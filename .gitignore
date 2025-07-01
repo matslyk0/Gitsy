@@ -10,3 +10,5 @@
 .idea/
 # Python virtual environment
 venv/
+# pycache
+__pycache__/
