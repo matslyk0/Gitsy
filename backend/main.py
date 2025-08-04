@@ -1,30 +1,51 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
+from typing import Annotated
+
+import models
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
 
 app = FastAPI()
+models.Base.metadata.create_all(bind=engine)
 
-class Item(BaseModel):
-    text: str = None
-    is_done: bool = False
+class UsersBase(BaseModel):
+    email: str
+    hashed_password: str
 
-items = []
+class RepositoriesBase(BaseModel):
+    owner: str
+    name: str
 
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
+class AnalysisBase(BaseModel):
+    repository_id: str
+    metric1: str
+    metric2: str
+    created_at: str
 
-@app.post("/items")
-def create_item(item: Item):
-    items.append(item)
-    return items
+class DummyBase(BaseModel):
+    test: str
 
-@app.get("/items", response_model=list[Item])
-def list_items(limit: int = 10):
-    return items[0:limit]
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-@app.get("/items/{item_id}", response_model=Item)
-def get_item(item_id: int) -> Item:
-    if item_id < len(items):
-        return items[item_id]
-    else:
-        raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
+db_dependency = Annotated[Session, Depends(get_db)]
+
+@app.get("/dummy/{dummy_id}")
+def list_dummies(dummy_id: int, db: db_dependency):
+    result = db.query(models.Dummy).filter(dummy_id == models.Dummy.id).first()
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Item {dummy_id} not found")
+    return result
+
+@app.post("/dummy")
+def create_dummy(dummy: DummyBase, db: db_dependency):
+    db_dummy = models.Dummy(test=dummy.test)
+    db.add(db_dummy)
+    db.commit()
+    db.refresh(db_dummy)
+    return db_dummy

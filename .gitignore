@@ -12,3 +12,5 @@
 venv/
 # pycache
 __pycache__/
+# environment variables for docker-compose
+.env
