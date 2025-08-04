@@ -20,9 +20,9 @@ Example:
 
 Follow this convention for commit messages:
 
-`feature/<short-description>`
-`fix/<short-description>`
-`docs/<short-description>`
+`feature: short-description`
+`fix: short-description`
+`docs: short-description`
 
 Example:
 
