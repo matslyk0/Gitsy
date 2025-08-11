@@ -34,7 +34,7 @@ def parse_data(data) -> list[dict]:
 def get_paginated_data(url: str) -> dict:
     pages_remaining = True
     data = []
-    params = {"per_page": 30}
+    params = {"per_page": 100}
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -43,7 +43,9 @@ def get_paginated_data(url: str) -> dict:
     while pages_remaining:
         response = requests.get(url, params=params, headers=headers)
         if response.status_code != 200:
-            raise GithubAPIError(f"Failed to obtain data. Error code {response.status_code}")
+            raise GithubAPIError(
+                f"Failed to obtain data. Error code {response.status_code}"
+            )
 
         parsed_data = parse_data(response.json())
         data += parsed_data
@@ -76,8 +78,8 @@ def get_commits(repo_url: str) -> dict:
                -> second element determines the validity of the result.
     """
 
-    info = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{info}/commits"
+    url = repo_url.removeprefix("https://github.com/")
+    url = f"https://api.github.com/repos/{url}/commits"
 
     return get_paginated_data(url)
 
@@ -116,16 +118,71 @@ def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
     return total_hours / total_commits
 
 
-try:
-    hours_between_commits = get_commit_frequency("https://github.com/matslyk0/gits")
-    print("Gitsy has a commit every %.2f hours!" % hours_between_commits)
-    #print(json.dumps(output, indent=4))
-except GithubAPIError as e:
-    print(e)
-except Exception as e:
-    logging.exception(f"Something went wrong: {e}")
+def get_code_churn(repo_url: str) -> dict:
+    total = 0
+    additions = 0
+    deletions = 0
 
-"""
-hours_between_commits = get_commit_frequency("https://github.com/dyad-sh/dyad")
-print("dyad has a commit every %.2f hours!" % hours_between_commits)
-"""
+    commits = get_commits(repo_url)
+    url = repo_url.removeprefix("https://github.com/")
+    url = f"https://api.github.com/repos/{url}/commits"
+
+    headers = {
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+    }
+
+    for commit in commits:
+        sha = commit["sha"]
+        response = requests.get(f"{url}/{sha}", headers=headers)
+        stats = response.json()["stats"]
+
+        total += stats["total"]
+        additions += stats["additions"]
+        deletions += stats["deletions"]
+
+    net = additions - deletions
+
+    return {"additions": additions, "deletions": deletions, "total": total, "net": net}
+
+
+def get_repo_name(repo_url: str) -> str:
+    user_and_repo = repo_url.removeprefix("https://github.com/")
+    user, separator, repo = user_and_repo.partition("/")
+    return user
+
+
+def test_commit_frequency(repo_url: str) -> None:
+    try:
+        hours_between_commits = get_commit_frequency(repo_url)
+        print(
+            f"{get_repo_name(repo_url)} has a commit every {hours_between_commits:.2f} hours!"
+        )
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
+def test_commits(repo_url: str) -> None:
+    try:
+        commits = get_commits(repo_url)
+        print(json.dumps(commits, indent=4))
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
+def test_code_churn(repo_url: str) -> None:
+    try:
+        print(get_code_churn(repo_url))
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
+# test_commit_frequency("https://github.com/matslyk0/Gitsy")
+# test_commits("https://github.com/matslyk0/Gitsy")
+# test_code_churn("https://github.com/dyad-sh/dyad")
