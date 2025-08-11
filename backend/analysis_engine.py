@@ -71,6 +71,9 @@ def get_paginated_data(url: str, extra_params: dict = None, extra_headers: dict 
     return data
 
 
+#--------------------------------------------------------------#
+
+
 def get_commits(repo_url: str) -> dict:
     """
     Obtains the commits of a public repository
@@ -90,11 +93,21 @@ def get_commits(repo_url: str) -> dict:
     return get_paginated_data(url)
 
 
-def get_issues(repo_url: str) -> dict:
+def get_issues(repo_url: str, state: str = "open") -> dict:
     url = repo_url.removeprefix("https://github.com/")
     url = f"https://api.github.com/repos/{url}/issues"
 
-    return get_paginated_data(url, extra_params={"state": "all"})
+    return get_paginated_data(url, extra_params={"state": f"{state}"})
+
+
+def get_pulls(repo_url: str, state: str = "open") -> dict:
+    url = repo_url.removeprefix("https://github.com/")
+    url = f"https://api.github.com/repos/{url}/pulls"
+
+    return get_paginated_data(url, extra_params={"state": f"{state}"})
+
+
+#--------------------------------------------------------------#
 
 
 def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
@@ -160,25 +173,48 @@ def get_code_churn(repo_url: str) -> dict:
 
 
 def get_issue_times(repo_url: str) -> float:
-    issues = get_issues(repo_url)
+    issues = get_issues(repo_url, state="closed")
+    if len(issues) == 0:
+        return -1.0
+
     total_time = 0
 
     for issue in issues:
-        if issue["closed_at"] is not None:
-            created_at = issue["created_at"].replace("Z", "+00:00")
-            created_at = datetime.fromisoformat(created_at)
+        created_at = issue["created_at"].replace("Z", "+00:00")
+        created_at = datetime.fromisoformat(created_at)
 
-            closed_at = issue["closed_at"].replace("Z", "+00:00")
-            closed_at = datetime.fromisoformat(closed_at)
+        closed_at = issue["closed_at"].replace("Z", "+00:00")
+        closed_at = datetime.fromisoformat(closed_at)
 
-            difference = closed_at - created_at
-            total_hours = difference / timedelta(hours=1)
-            total_time += total_hours
-
-    if total_time == 0:
-        return -1.0
+        difference = closed_at - created_at
+        total_hours = difference / timedelta(hours=1)
+        total_time += total_hours
 
     return total_time / len(issues)
+
+
+def get_pull_times(repo_url: str) -> float:
+    pulls = get_pulls(repo_url, state="closed")
+    if len(pulls) == 0:
+        return -1.0
+
+    total_time = 0
+
+    for pull in pulls:
+        created_at = pull["created_at"].replace("Z", "+00:00")
+        created_at = datetime.fromisoformat(created_at)
+
+        merged_at = pull["merged_at"].replace("Z", "+00:00")
+        merged_at = datetime.fromisoformat(merged_at)
+
+        difference = merged_at - created_at
+        total_hours = difference / timedelta(hours=1)
+        total_time += total_hours
+
+    return total_time / len(pulls)
+
+
+#--------------------------------------------------------------#
 
 
 def test_commits(repo_url: str) -> None:
@@ -226,7 +262,22 @@ def test_issue_times(repo_url: str) -> None:
         logging.exception(f"Something went wrong: {e}")
 
 
-# test_commit_frequency("https://github.com/matslyk0/Gitsy")
-# test_commits("https://github.com/matslyk0/Gitsy")
-# test_code_churn("https://github.com/dyad-sh/dyad")
-test_issue_times("https://github.com/matslyk0/Gitsy")
+def test_pull_times(repo_url: str) -> None:
+    user_and_repo = repo_url.removeprefix("https://github.com/")
+    user, separator, repo = user_and_repo.partition("/")
+    try:
+        pull_close_time = get_pull_times(repo_url)
+        print(f"{repo} merges a pull request every {pull_close_time:.4f} hours!")
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
+#--------------------------------------------------------------#
+
+
+# "https://github.com/matslyk0/Gitsy"
+# "https://github.com/dyad-sh/dyad"
+
+test_pull_times("https://github.com/matslyk0/Gitsy")
