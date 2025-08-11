@@ -31,14 +31,20 @@ def parse_data(data) -> list[dict]:
     return data
 
 
-def get_paginated_data(url: str) -> dict:
+def get_paginated_data(url: str, extra_params: dict = None, extra_headers: dict = None) -> dict:
     pages_remaining = True
     data = []
+
     params = {"per_page": 100}
+    if extra_params is not None:
+        params = params | extra_params
+
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
+    if extra_headers is not None:
+        headers = headers | extra_headers
 
     while pages_remaining:
         response = requests.get(url, params=params, headers=headers)
@@ -82,6 +88,13 @@ def get_commits(repo_url: str) -> dict:
     url = f"https://api.github.com/repos/{url}/commits"
 
     return get_paginated_data(url)
+
+
+def get_issues(repo_url: str) -> dict:
+    url = repo_url.removeprefix("https://github.com/")
+    url = f"https://api.github.com/repos/{url}/issues"
+
+    return get_paginated_data(url, extra_params={"state": "all"})
 
 
 def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
@@ -146,28 +159,46 @@ def get_code_churn(repo_url: str) -> dict:
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-def get_repo_name(repo_url: str) -> str:
-    user_and_repo = repo_url.removeprefix("https://github.com/")
-    user, separator, repo = user_and_repo.partition("/")
-    return user
+def get_issue_times(repo_url: str) -> float:
+    issues = get_issues(repo_url)
+    total_time = 0
 
+    for issue in issues:
+        if issue["closed_at"] is not None:
+            created_at = issue["created_at"].replace("Z", "+00:00")
+            created_at = datetime.fromisoformat(created_at)
 
-def test_commit_frequency(repo_url: str) -> None:
-    try:
-        hours_between_commits = get_commit_frequency(repo_url)
-        print(
-            f"{get_repo_name(repo_url)} has a commit every {hours_between_commits:.2f} hours!"
-        )
-    except GithubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+            closed_at = issue["closed_at"].replace("Z", "+00:00")
+            closed_at = datetime.fromisoformat(closed_at)
+
+            difference = closed_at - created_at
+            total_hours = difference / timedelta(hours=1)
+            total_time += total_hours
+
+    if total_time == 0:
+        return -1.0
+
+    return total_time / len(issues)
 
 
 def test_commits(repo_url: str) -> None:
     try:
         commits = get_commits(repo_url)
         print(json.dumps(commits, indent=4))
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
+def test_commit_frequency(repo_url: str) -> None:
+    user_and_repo = repo_url.removeprefix("https://github.com/")
+    user, separator, repo = user_and_repo.partition("/")
+    try:
+        hours_between_commits = get_commit_frequency(repo_url)
+        print(
+            f"{repo} has a commit every {hours_between_commits:.2f} hours!"
+        )
     except GithubAPIError as e:
         print(e)
     except Exception as e:
@@ -183,6 +214,19 @@ def test_code_churn(repo_url: str) -> None:
         logging.exception(f"Something went wrong: {e}")
 
 
+def test_issue_times(repo_url: str) -> None:
+    user_and_repo = repo_url.removeprefix("https://github.com/")
+    user, separator, repo = user_and_repo.partition("/")
+    try:
+        issue_close_time = get_issue_times(repo_url)
+        print(f"{repo} closes an issue every {issue_close_time:.2f} hours!")
+    except GithubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something went wrong: {e}")
+
+
 # test_commit_frequency("https://github.com/matslyk0/Gitsy")
 # test_commits("https://github.com/matslyk0/Gitsy")
 # test_code_churn("https://github.com/dyad-sh/dyad")
+test_issue_times("https://github.com/matslyk0/Gitsy")
