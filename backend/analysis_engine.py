@@ -1,9 +1,11 @@
+import logging
 import requests
 import json
 import re
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from exceptions import GithubAPIError
 
 
 load_dotenv()
@@ -37,21 +39,20 @@ def get_paginated_data(url: str) -> dict:
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
-    success = True
 
     while pages_remaining:
         response = requests.get(url, params=params, headers=headers)
-        if response.status_code == 200:
-            parsed_data = parse_data(response.json())
-            data += parsed_data
-        else:
-            success = False
-            break
+        if response.status_code != 200:
+            raise GithubAPIError(f"Failed to obtain data. Error code {response.status_code}")
+
+        parsed_data = parse_data(response.json())
+        data += parsed_data
 
         # for scenarios where there is only one page of results
         if "link" not in response.headers:
             break
 
+        # gets link, checks existence and checks if it is a 'next' link
         link_header = response.headers["link"]
         pages_remaining = link_header and 'rel="next"' in link_header
 
@@ -59,7 +60,7 @@ def get_paginated_data(url: str) -> dict:
             match = re.search(r'(?<=<)(\S*)(?=>; rel="next")', link_header)
             url = match.group(1)
 
-    return {"data": data, "success": success}
+    return data
 
 
 def get_commits(repo_url: str) -> dict:
@@ -93,11 +94,7 @@ def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
         float: the hours per commit, -1.0 if there is no feasible calculation
     """
 
-    commits_request = get_commits(repo_url)
-    commits = commits_request["data"]
-
-    if not commits_request["success"]:
-        return -1.0
+    commits = get_commits(repo_url)
 
     if not include_initial:
         commits.pop(-1)
@@ -119,11 +116,16 @@ def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
     return total_hours / total_commits
 
 
-hours_between_commits = get_commit_frequency("https://github.com/dyad-sh/dyad")
-print("dyad has a commit every %.2f hours!" % hours_between_commits)
+try:
+    hours_between_commits = get_commit_frequency("https://github.com/matslyk0/gits")
+    print("Gitsy has a commit every %.2f hours!" % hours_between_commits)
+    #print(json.dumps(output, indent=4))
+except GithubAPIError as e:
+    print(e)
+except Exception as e:
+    logging.exception(f"Something went wrong: {e}")
 
 """
-output = get_commits("https://github.com/matslyk0/Gitsy")
-if output[1]:
-    print(json.dumps(output, indent=4))
+hours_between_commits = get_commit_frequency("https://github.com/dyad-sh/dyad")
+print("dyad has a commit every %.2f hours!" % hours_between_commits)
 """
