@@ -5,7 +5,7 @@ import re
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from exceptions import GithubAPIError
+from exceptions import GithubAPIError, InsufficientDataError
 
 
 load_dotenv()
@@ -35,7 +35,7 @@ def get_paginated_data(url: str, extra_params: dict = None, extra_headers: dict 
     pages_remaining = True
     data = []
 
-    params = {"per_page": 100}
+    params = {"per_page": 30}
     if extra_params is not None:
         params = params | extra_params
 
@@ -56,13 +56,12 @@ def get_paginated_data(url: str, extra_params: dict = None, extra_headers: dict 
         parsed_data = parse_data(response.json())
         data += parsed_data
 
-        # for scenarios where there is only one page of results
+        # if all results fit into one page, there will be no "link"
         if "link" not in response.headers:
             break
 
-        # gets link, checks existence and checks if it is a 'next' link
         link_header = response.headers["link"]
-        pages_remaining = link_header and 'rel="next"' in link_header
+        pages_remaining = 'rel="next"' in link_header
 
         if pages_remaining:
             match = re.search(r'(?<=<)(\S*)(?=>; rel="next")', link_header)
@@ -129,7 +128,7 @@ def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
 
     total_commits = len(commits)
     if total_commits < 2:
-        return -1.0
+        raise InsufficientDataError("Not enough data to perform calculation.")
 
     first_commit = commits[-1]
     first_timestamp = first_commit["commit"]["author"]["date"].replace("Z", "+00:00")
@@ -175,7 +174,7 @@ def get_code_churn(repo_url: str) -> dict:
 def get_issue_times(repo_url: str) -> float:
     issues = get_issues(repo_url, state="closed")
     if len(issues) == 0:
-        return -1.0
+        raise InsufficientDataError("Not enough data to perform calculation.")
 
     total_time = 0
 
@@ -196,7 +195,7 @@ def get_issue_times(repo_url: str) -> float:
 def get_pull_times(repo_url: str) -> float:
     pulls = get_pulls(repo_url, state="closed")
     if len(pulls) == 0:
-        return -1.0
+        raise InsufficientDataError("Not enough data to perform calculation.")
 
     total_time = 0
 
@@ -224,7 +223,7 @@ def test_commits(repo_url: str) -> None:
     except GithubAPIError as e:
         print(e)
     except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+        logging.exception(f"Something unexpected went wrong: {e}")
 
 
 def test_commit_frequency(repo_url: str) -> None:
@@ -235,10 +234,10 @@ def test_commit_frequency(repo_url: str) -> None:
         print(
             f"{repo} has a commit every {hours_between_commits:.2f} hours!"
         )
-    except GithubAPIError as e:
+    except (GithubAPIError, InsufficientDataError) as e:
         print(e)
     except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+        logging.exception(f"Something unexpected went wrong: {e}")
 
 
 def test_code_churn(repo_url: str) -> None:
@@ -247,7 +246,7 @@ def test_code_churn(repo_url: str) -> None:
     except GithubAPIError as e:
         print(e)
     except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+        logging.exception(f"Something unexpected went wrong: {e}")
 
 
 def test_issue_times(repo_url: str) -> None:
@@ -256,10 +255,10 @@ def test_issue_times(repo_url: str) -> None:
     try:
         issue_close_time = get_issue_times(repo_url)
         print(f"{repo} closes an issue every {issue_close_time:.2f} hours!")
-    except GithubAPIError as e:
+    except (GithubAPIError, InsufficientDataError) as e:
         print(e)
     except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+        logging.exception(f"Something unexpected went wrong: {e}")
 
 
 def test_pull_times(repo_url: str) -> None:
@@ -268,7 +267,7 @@ def test_pull_times(repo_url: str) -> None:
     try:
         pull_close_time = get_pull_times(repo_url)
         print(f"{repo} merges a pull request every {pull_close_time:.4f} hours!")
-    except GithubAPIError as e:
+    except (GithubAPIError, InsufficientDataError) as e:
         print(e)
     except Exception as e:
         logging.exception(f"Something went wrong: {e}")
@@ -279,5 +278,3 @@ def test_pull_times(repo_url: str) -> None:
 
 # "https://github.com/matslyk0/Gitsy"
 # "https://github.com/dyad-sh/dyad"
-
-test_pull_times("https://github.com/matslyk0/Gitsy")
