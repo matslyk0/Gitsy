@@ -1,5 +1,6 @@
-class GithubAPIError(Exception):
+class GitHubAPIError(Exception):
     pass
+
 
 class InsufficientDataError(Exception):
     pass

@@ -1,130 +1,22 @@
-import logging
-import requests
-import json
-import re
-import os
-from dotenv import load_dotenv
+import github_client
 from datetime import datetime, timedelta
-from exceptions import GithubAPIError, InsufficientDataError
 
 
-load_dotenv()
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
-
-def parse_data(data) -> list[dict]:
-    if type(data) is list:
-        return data
-
-    if type(data) is None:
-        return []
-
-    print(data)
-
-    del data["incomplete_results"]
-    del data["repository_selection"]
-    del data["total_count"]
-
-    namespace_key = data.keys()[0]
-    data = data[namespace_key]
-
-    return data
-
-
-def get_paginated_data(url: str, extra_params: dict = None, extra_headers: dict = None) -> dict:
-    pages_remaining = True
-    data = []
-
-    params = {"per_page": 30}
-    if extra_params is not None:
-        params = params | extra_params
-
-    headers = {
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-    }
-    if extra_headers is not None:
-        headers = headers | extra_headers
-
-    while pages_remaining:
-        response = requests.get(url, params=params, headers=headers)
-        if response.status_code != 200:
-            raise GithubAPIError(
-                f"Failed to obtain data. Error code {response.status_code}"
-            )
-
-        parsed_data = parse_data(response.json())
-        data += parsed_data
-
-        # if all results fit into one page, there will be no "link"
-        if "link" not in response.headers:
-            break
-
-        link_header = response.headers["link"]
-        pages_remaining = 'rel="next"' in link_header
-
-        if pages_remaining:
-            match = re.search(r'(?<=<)(\S*)(?=>; rel="next")', link_header)
-            url = match.group(1)
-
-    return data
-
-
-#--------------------------------------------------------------#
-
-
-def get_commits(repo_url: str) -> dict:
-    """
-    Obtains the commits of a public repository
+def get_commit_frequency(repo_url: str) -> float:
+    """Calculates the average number of hours between commits for a repository.
 
     Args:
-        repo_url (str): string in the format https://github.com/user/repo
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
 
     Returns:
-        dict: ("data":, "success":)
-               -> first element is the list of commits;
-               -> second element determines the validity of the result.
+        float: The average number of hours between commits.
+
+    Raises:
+         InsufficientDataError: If the repository has less than 2 commits.
     """
 
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/commits"
-
-    return get_paginated_data(url)
-
-
-def get_issues(repo_url: str, state: str = "open") -> dict:
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/issues"
-
-    return get_paginated_data(url, extra_params={"state": f"{state}"})
-
-
-def get_pulls(repo_url: str, state: str = "open") -> dict:
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/pulls"
-
-    return get_paginated_data(url, extra_params={"state": f"{state}"})
-
-
-#--------------------------------------------------------------#
-
-
-def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
-    """
-    Calculates the average hours per commit of a repository.
-
-    Args:
-        repo_url: string in the format https://github.com/owner/repo
-        include_initial: flag to include the initial commit of a repository, default = True
-
-    Returns:
-        float: the hours per commit, -1.0 if there is no feasible calculation
-    """
-
-    commits = get_commits(repo_url)
-
-    if not include_initial:
-        commits.pop(-1)
+    commits = github_client.get_commits(repo_url)
 
     total_commits = len(commits)
     if total_commits < 2:
@@ -144,23 +36,28 @@ def get_commit_frequency(repo_url: str, include_initial: bool = True) -> float:
 
 
 def get_code_churn(repo_url: str) -> dict:
+    """Calculates the number of additions, deletions, the total of both, and the net additions.
+
+    Args:
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
+
+    Returns:
+        dict: A dictionary with the keys "additions", "deletions",
+              "total" (sum), and "net" (difference).
+    """
     total = 0
     additions = 0
     deletions = 0
+    commits = github_client.get_commits(repo_url)
 
-    commits = get_commits(repo_url)
     url = repo_url.removeprefix("https://github.com/")
     url = f"https://api.github.com/repos/{url}/commits"
 
-    headers = {
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-    }
-
     for commit in commits:
         sha = commit["sha"]
-        response = requests.get(f"{url}/{sha}", headers=headers)
-        stats = response.json()["stats"]
+        commit_info = github_client.get_commit_info(commits_url, sha)
+        stats = commit_info["stats"]
 
         total += stats["total"]
         additions += stats["additions"]
@@ -172,7 +69,19 @@ def get_code_churn(repo_url: str) -> dict:
 
 
 def get_issue_times(repo_url: str) -> float:
-    issues = get_issues(repo_url, state="closed")
+    """Calculates the average number of hours for an issue to be closed.
+
+    Args:
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
+
+    Returns:
+        float: The average number of hours for an issue to be closed.
+
+    Raises:
+         InsufficientDataError: If the repository has no closed issues.
+    """
+    issues = github_client.get_issues(repo_url, state="closed")
     if len(issues) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -193,7 +102,19 @@ def get_issue_times(repo_url: str) -> float:
 
 
 def get_pull_times(repo_url: str) -> float:
-    pulls = get_pulls(repo_url, state="closed")
+    """Calculates the average number of hours for a pull request to be merged or closed.
+
+    Args:
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
+
+    Returns:
+        float: The average number of hours for a pull request to be merged or closed.
+
+    Raises:
+         InsufficientDataError: If there are no closed or merged pull requests.
+    """
+    pulls = github_client.get_pulls(repo_url, state="closed")
     if len(pulls) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -203,78 +124,20 @@ def get_pull_times(repo_url: str) -> float:
         created_at = pull["created_at"].replace("Z", "+00:00")
         created_at = datetime.fromisoformat(created_at)
 
-        merged_at = pull["merged_at"].replace("Z", "+00:00")
-        merged_at = datetime.fromisoformat(merged_at)
+        closed_at = pull["closed_at"].replace("Z", "+00:00")
+        closed_at = datetime.fromisoformat(closed_at)
 
-        difference = merged_at - created_at
+        difference = closed_at - created_at
         total_hours = difference / timedelta(hours=1)
         total_time += total_hours
 
     return total_time / len(pulls)
 
 
-#--------------------------------------------------------------#
-
-
-def test_commits(repo_url: str) -> None:
-    try:
-        commits = get_commits(repo_url)
-        print(json.dumps(commits, indent=4))
-    except GithubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-
-def test_commit_frequency(repo_url: str) -> None:
-    user_and_repo = repo_url.removeprefix("https://github.com/")
-    user, separator, repo = user_and_repo.partition("/")
-    try:
-        hours_between_commits = get_commit_frequency(repo_url)
-        print(
-            f"{repo} has a commit every {hours_between_commits:.2f} hours!"
-        )
-    except (GithubAPIError, InsufficientDataError) as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-
-def test_code_churn(repo_url: str) -> None:
-    try:
-        print(get_code_churn(repo_url))
-    except GithubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-
-def test_issue_times(repo_url: str) -> None:
-    user_and_repo = repo_url.removeprefix("https://github.com/")
-    user, separator, repo = user_and_repo.partition("/")
-    try:
-        issue_close_time = get_issue_times(repo_url)
-        print(f"{repo} closes an issue every {issue_close_time:.2f} hours!")
-    except (GithubAPIError, InsufficientDataError) as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-
-def test_pull_times(repo_url: str) -> None:
-    user_and_repo = repo_url.removeprefix("https://github.com/")
-    user, separator, repo = user_and_repo.partition("/")
-    try:
-        pull_close_time = get_pull_times(repo_url)
-        print(f"{repo} merges a pull request every {pull_close_time:.4f} hours!")
-    except (GithubAPIError, InsufficientDataError) as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
-
-
-#--------------------------------------------------------------#
-
-
 # "https://github.com/matslyk0/Gitsy"
 # "https://github.com/dyad-sh/dyad"
+
+# print(get_commit_frequency("https://github.com/matslyk0/Gitsy"))
+print(get_code_churn("https://github.com/matslyk0/Gitsy"))
+# print(get_issue_times("https://github.com/matslyk0/Gitsy"))
+# print(get_pull_times("https://github.com/matslyk0/Gitsy"))
