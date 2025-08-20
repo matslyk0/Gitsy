@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from database import Base
+from backend.database import Base
 
 
 class Users(Base):
@@ -32,4 +32,4 @@ class Dummy(Base):
     __tablename__ = "dummy"
 
     id = Column(Integer, primary_key=True, index=True)
-    test = Column(String, index=True)
+    item = Column(String, index=True)

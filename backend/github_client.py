@@ -2,7 +2,7 @@ import requests
 import re
 import os
 from dotenv import load_dotenv
-from exceptions import GithubAPIError, InsufficientDataError
+from exceptions import GitHubAPIError, InsufficientDataError
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
