@@ -1,8 +1,8 @@
-from backend import models
+import models
 from typing import Annotated
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from backend.database import engine, SessionLocal
+from database import engine, SessionLocal
 from fastapi import FastAPI, HTTPException, Depends
 
 

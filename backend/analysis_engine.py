@@ -56,7 +56,7 @@ def get_code_churn(repo_url: str) -> dict:
 
     for commit in commits:
         sha = commit["sha"]
-        commit_info = github_client.get_commit_info(commits_url, sha)
+        commit_info = github_client.get_commit_info(url, sha)
         stats = commit_info["stats"]
 
         total += stats["total"]

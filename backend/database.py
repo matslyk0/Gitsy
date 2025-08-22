@@ -1,16 +1,13 @@
 import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-load_dotenv()
+POSTGRES_USER = os.getenv("POSTGRES_USER", "fallback_user")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "fallback_db")
+DB_HOST = os.getenv("DB_HOST", "will_break_if_used")
 
-DB_USER = os.getenv("POSTGRES_USER", "fallback_user")
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
-DB_NAME = os.getenv("POSTGRES_DB", "fallback_db")
-DB_HOST = "database"
-
-DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
+DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
