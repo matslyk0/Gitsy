@@ -104,10 +104,63 @@ def get_commits(repo_url: str) -> list[dict]:
     Returns:
         list[dict]: A list with a dictionary for each commit.
     """
-
+    commits = []
     url = f"{parse_url(repo_url)}/commits"
 
-    return get_paginated_data(url)
+    try:
+        commits = get_paginated_data(url)
+    except GitHubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something unexpected went wrong: {e}")
+
+    return commits
+
+
+def get_issues(repo_url: str, state: str = "open") -> list[dict]:
+    """Obtains all issues of a repository.
+
+    Args:
+        repo_url (str): The repository URL in the format https://github.com/user/repo
+        state (str): The desired state of the issue, "open", "closed", "all". Default "open".
+
+    Returns:
+        list[dict]: A list of dictionaries, with a dictionary for each issue.
+    """
+    issues = []
+    url = f"{parse_url(repo_url)}/issues"
+
+    try:
+        issues = get_paginated_data(url, extra_params={"state": f"{state}"})
+    except GitHubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something unexpected went wrong: {e}")
+
+    return issues
+
+
+def get_pulls(repo_url: str, state: str = "open") -> list[dict]:
+    """Obtains all pull requests of a repository.
+
+    Args:
+        repo_url (str): The repository URL in the format https://github.com/user/repo
+        state (str): The desired state of the pull request, "open", "closed", "all". Default "open".
+
+    Returns:
+        list[dict]: A list of dictionaries, with a dictionary for each pull request.
+    """
+    pulls = []
+    url = f"{parse_url(repo_url)}/pulls"
+
+    try:
+        pulls = get_paginated_data(url, extra_params={"state": f"{state}"})
+    except GitHubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something unexpected went wrong: {e}")
+
+    return pulls
 
 
 def get_commit_info(repo_url: str, sha: str) -> dict:
@@ -131,33 +184,3 @@ def get_commit_info(repo_url: str, sha: str) -> dict:
         raise GitHubAPIError(f"Failed to obtain data. Error code {response.status_code}")
 
     return response.json()
-
-
-def get_issues(repo_url: str, state: str = "open") -> list[dict]:
-    """Obtains all issues of a repository.
-
-    Args:
-        repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the issue, "open", "closed", "all". Default "open".
-
-    Returns:
-        list[dict]: A list of dictionaries, with a dictionary for each issue.
-    """
-    url = f"{parse_url(repo_url)}/issues"
-
-    return get_paginated_data(url, extra_params={"state": f"{state}"})
-
-
-def get_pulls(repo_url: str, state: str = "open") -> list[dict]:
-    """Obtains all pull requests of a repository.
-
-    Args:
-        repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the pull request, "open", "closed", "all". Default "open".
-
-    Returns:
-        list[dict]: A list of dictionaries, with a dictionary for each pull request.
-    """
-    url = f"{parse_url(repo_url)}/pulls"
-
-    return get_paginated_data(url, extra_params={"state": f"{state}"})

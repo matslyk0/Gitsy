@@ -16,7 +16,14 @@ def get_commit_frequency(repo_url: str) -> float:
          InsufficientDataError: If the repository has less than 2 commits.
     """
 
-    commits = github_client.get_commits(repo_url)
+    commits = []
+
+    try:
+        commits = github_client.get_commits(repo_url)
+    except GitHubAPIError as e:
+        print(e)
+    except Exception as e:
+        logging.exception(f"Something unexpected went wrong: {e}")
 
     total_commits = len(commits)
     if total_commits < 2:
@@ -51,12 +58,9 @@ def get_code_churn(repo_url: str) -> dict:
     deletions = 0
     commits = github_client.get_commits(repo_url)
 
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/commits"
-
     for commit in commits:
         sha = commit["sha"]
-        commit_info = github_client.get_commit_info(url, sha)
+        commit_info = github_client.get_commit_info(repo_url, sha)
         stats = commit_info["stats"]
 
         total += stats["total"]
@@ -138,6 +142,7 @@ def get_pull_times(repo_url: str) -> float:
 # "https://github.com/dyad-sh/dyad"
 
 # print(get_commit_frequency("https://github.com/matslyk0/Gitsy"))
-print(get_code_churn("https://github.com/matslyk0/Gitsy"))
+# print(get_code_churn("https://github.com/matslyk0/Gitsy"))
 # print(get_issue_times("https://github.com/matslyk0/Gitsy"))
 # print(get_pull_times("https://github.com/matslyk0/Gitsy"))
+
