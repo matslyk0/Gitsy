@@ -3,7 +3,7 @@ import os
 import json
 import requests
 from dotenv import load_dotenv
-from backend.exceptions import GitHubAPIError, InsufficientDataError
+from backend.exceptions import *
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -181,6 +181,6 @@ def get_commit_info(repo_url: str, sha: str) -> dict:
 
     response = requests.get(f"{url}/{sha}", headers=headers)
     if response.status_code != 200:
-        raise GitHubAPIError(f"Failed to obtain data. Error code {response.status_code}")
+        raise CommitInfoError(f"Failed to obtain commit info. Error code {response.status_code}")
 
     return response.json()

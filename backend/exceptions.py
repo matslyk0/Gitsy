@@ -4,3 +4,7 @@ class GitHubAPIError(Exception):
 
 class InsufficientDataError(Exception):
     pass
+
+
+class CommitInfoError(Exception):
+    pass
