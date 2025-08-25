@@ -121,7 +121,6 @@ def get_commit_info(repo_url: str, sha: str) -> dict:
         dict: A dictionary containing the information about the commit.
     """
     url = f"{parse_url(repo_url)}/commits"
-
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -130,6 +129,7 @@ def get_commit_info(repo_url: str, sha: str) -> dict:
     response = requests.get(f"{url}/{sha}", headers=headers)
     if response.status_code != 200:
         raise GitHubAPIError(f"Failed to obtain data. Error code {response.status_code}")
+
     return response.json()
 
 
