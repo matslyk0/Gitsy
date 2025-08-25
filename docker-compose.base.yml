@@ -5,8 +5,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-    command: python run.py
+      - ./backend:/app/backend
+    command: uvicorn --factory backend.main:create_app --host 0.0.0.0 --port 8000 --reload
 
 
   pgadmin:

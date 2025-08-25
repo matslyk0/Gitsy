@@ -1,8 +1,9 @@
-import models
+import os
+import backend.models as models
 from typing import Annotated
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import engine, SessionLocal
+from backend.database import engine, SessionLocal
 from fastapi import FastAPI, HTTPException, Depends
 
 
@@ -39,7 +40,8 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 def create_app():
     app = FastAPI()
-    models.Base.metadata.create_all(bind=engine)
+    if os.getenv("DB_HOST") == "database":
+        models.Base.metadata.create_all(bind=engine)
 
     @app.get("/dummy/{dummy_id}", response_model=Dummy)
     def get_dummy(dummy_id: int, db: db_dependency):

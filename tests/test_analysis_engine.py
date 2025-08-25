@@ -1,6 +1,6 @@
 import json
 import logging
-import github_client.py
+import backend.github_client
 
 def test_commits(repo_url: str) -> None:
     """Tests get_commits from github_client.py"""
