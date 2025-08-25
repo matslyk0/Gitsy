@@ -1,4 +1,4 @@
-import github_client
+import backend.github_client as github_client
 from datetime import datetime, timedelta
 
 
