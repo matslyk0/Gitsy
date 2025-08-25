@@ -1,8 +1,9 @@
-import requests
 import re
 import os
+import json
+import requests
 from dotenv import load_dotenv
-from exceptions import GitHubAPIError, InsufficientDataError
+from backend.exceptions import GitHubAPIError, InsufficientDataError
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -88,6 +89,12 @@ def get_paginated_data(
     return data
 
 
+def parse_url(repo_url: str):
+    """Parses a repository URL into the GitHub API format"""
+    url = repo_url.removeprefix("https://github.com/")
+    return f"https://api.github.com/repos/{url}"
+
+
 def get_commits(repo_url: str) -> list[dict]:
     """Obtains the commits of a public repository
 
@@ -98,28 +105,31 @@ def get_commits(repo_url: str) -> list[dict]:
         list[dict]: A list with a dictionary for each commit.
     """
 
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/commits"
+    url = f"{parse_url(repo_url)}/commits"
 
     return get_paginated_data(url)
 
 
-def get_commit_info(commits_url: str, sha: str) -> dict:
+def get_commit_info(repo_url: str, sha: str) -> dict:
     """Obtains detailed information about a commit.
 
     Args:
-        commits_url (str): The URL in the format https://github.com/user/repo/commits
+        repo_url (str): The URL in the format https://github.com/user/repo
         sha (str): The SHA of the commit.
 
     Returns:
         dict: A dictionary containing the information about the commit.
     """
+    url = f"{parse_url(repo_url)}/commits"
+
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
-    response = requests.get(f"{commits_url}/{sha}", headers=headers)
 
+    response = requests.get(f"{url}/{sha}", headers=headers)
+    if response.status_code != 200:
+        raise GitHubAPIError(f"Failed to obtain data. Error code {response.status_code}")
     return response.json()
 
 
@@ -133,8 +143,7 @@ def get_issues(repo_url: str, state: str = "open") -> list[dict]:
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
     """
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/issues"
+    url = f"{parse_url(repo_url)}/issues"
 
     return get_paginated_data(url, extra_params={"state": f"{state}"})
 
@@ -149,10 +158,6 @@ def get_pulls(repo_url: str, state: str = "open") -> list[dict]:
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.
     """
-    url = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{url}/pulls"
+    url = f"{parse_url(repo_url)}/pulls"
 
     return get_paginated_data(url, extra_params={"state": f"{state}"})
-
-
-print(get_commits("https://github.com/matslyk0/Gitsy"))
