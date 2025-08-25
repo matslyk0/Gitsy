@@ -15,15 +15,7 @@ def get_commit_frequency(repo_url: str) -> float:
     Raises:
          InsufficientDataError: If the repository has less than 2 commits.
     """
-
-    commits = []
-
-    try:
-        commits = github_client.get_commits(repo_url)
-    except GitHubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
+    commits = github_client.get_commits(repo_url)
 
     total_commits = len(commits)
     if total_commits < 2:
@@ -136,13 +128,3 @@ def get_pull_times(repo_url: str) -> float:
         total_time += total_hours
 
     return total_time / len(pulls)
-
-
-# "https://github.com/matslyk0/Gitsy"
-# "https://github.com/dyad-sh/dyad"
-
-# print(get_commit_frequency("https://github.com/matslyk0/Gitsy"))
-# print(get_code_churn("https://github.com/matslyk0/Gitsy"))
-# print(get_issue_times("https://github.com/matslyk0/Gitsy"))
-# print(get_pull_times("https://github.com/matslyk0/Gitsy"))
-
