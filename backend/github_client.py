@@ -122,7 +122,7 @@ def get_issues(repo_url: str, state: str = "open") -> list[dict]:
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the issue, "open", "closed", "all". Default "open".
+        state (str): The desired state of the issue, "open", "closed", "all". Default "closed".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
@@ -145,7 +145,7 @@ def get_pulls(repo_url: str, state: str = "open") -> list[dict]:
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the pull request, "open", "closed", "all". Default "open".
+        state (str): The desired state of the pull request, "open", "closed", "all". Default "closed".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.

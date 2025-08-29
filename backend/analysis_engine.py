@@ -110,7 +110,7 @@ def get_issue_times(
     Raises:
          InsufficientDataError: If the repository has no closed issues.
     """
-    issues = github_client.get_issues(repo_url, state="closed")
+    issues = github_client.get_issues(repo_url)
     if len(issues) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -152,7 +152,7 @@ def get_pull_times(
     Raises:
          InsufficientDataError: If there are no closed or merged pull requests.
     """
-    pulls = github_client.get_pulls(repo_url, state="closed")
+    pulls = github_client.get_pulls(repo_url)
     if len(pulls) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
