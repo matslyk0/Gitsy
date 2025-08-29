@@ -8,3 +8,7 @@ class InsufficientDataError(Exception):
 
 class CommitInfoError(Exception):
     pass
+
+
+class TimeOutOfBoundsError(Exception):
+    pass
