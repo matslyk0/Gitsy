@@ -176,11 +176,10 @@ def get_pull_times(
 
     return total_time / len(pulls)
 
-"""
-until = datetime.strptime("2025-08-04 10:09", "%Y-%m-%d %H:%M")
-until = until.replace(tzinfo=ZoneInfo("UTC"))
-print(get_commit_frequency("https://github.com/matslyk0/Gitsy", time_until=until))
-"""
+
+timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
+timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
+print(get_pull_times("https://github.com/matslyk0/Gitsy", time_until=timestamp))
 
 """
 result = github_client.get_pulls("https://github.com/matslyk0/Gitsy", state="closed")
