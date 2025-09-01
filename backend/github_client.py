@@ -117,7 +117,7 @@ def get_commits(repo_url: str) -> list[dict]:
     return commits
 
 
-def get_issues(repo_url: str, state: str = "open") -> list[dict]:
+def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     """Obtains all issues of a repository.
 
     Args:
@@ -140,7 +140,7 @@ def get_issues(repo_url: str, state: str = "open") -> list[dict]:
     return issues
 
 
-def get_pulls(repo_url: str, state: str = "open") -> list[dict]:
+def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
     """Obtains all pull requests of a repository.
 
     Args:
