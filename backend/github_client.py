@@ -1,10 +1,8 @@
 import re
 import os
-import json
 import httpx
 import asyncio
 import logging
-import requests
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 from backend.exceptions import *
@@ -91,7 +89,6 @@ async def get_paginated_data(
             match = re.search(r'(?<=<)(\S*)(?=>; rel="next")', link_header)
             url = match.group(1)
 
-    print("Success.")
     return data
 
 

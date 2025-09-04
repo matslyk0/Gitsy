@@ -1,4 +1,6 @@
 import json
+import httpx
+import asyncio
 import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
@@ -6,7 +8,7 @@ from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 
 
-def get_commit_frequency(
+async def get_commit_frequency(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours between commits for a repository.
@@ -23,7 +25,7 @@ def get_commit_frequency(
     Raises:
          InsufficientDataError: If the repository has less than 2 commits.
     """
-    commits = github_client.get_commits(repo_url)
+    commits = await github_client.get_commits(repo_url)
 
     if len(commits) < 2:
         raise InsufficientDataError("Not enough data to perform calculation.")
@@ -47,7 +49,7 @@ def get_commit_frequency(
     return total_hours / len(commits)
 
 
-def get_code_churn(
+async def get_code_churn(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> dict:
     """Calculates the number of additions, deletions, the total of both, and the net additions.
@@ -65,7 +67,7 @@ def get_code_churn(
     Raises:
          InsufficientDataError: If the repository has no commits.
     """
-    commits = github_client.get_commits(repo_url)
+    commits = await github_client.get_commits(repo_url)
     if len(commits) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -93,7 +95,7 @@ def get_code_churn(
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-def get_issue_times(
+async def get_issue_times(
         repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for an issue to be closed.
@@ -110,7 +112,7 @@ def get_issue_times(
     Raises:
          InsufficientDataError: If the repository has no closed issues.
     """
-    issues = github_client.get_issues(repo_url)
+    issues = await github_client.get_issues(repo_url)
     if len(issues) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -135,7 +137,7 @@ def get_issue_times(
     return total_time / len(issues)
 
 
-def get_pull_times(
+async def get_pull_times(
         repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for a pull request to be merged or closed.
@@ -152,7 +154,7 @@ def get_pull_times(
     Raises:
          InsufficientDataError: If there are no closed or merged pull requests.
     """
-    pulls = github_client.get_pulls(repo_url)
+    pulls = await github_client.get_pulls(repo_url)
     if len(pulls) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -179,10 +181,10 @@ def get_pull_times(
 
 timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
 timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
-print(get_pull_times("https://github.com/matslyk0/Gitsy", time_until=timestamp))
-
+result = asyncio.run(get_pull_times("https://github.com/matslyk0/Gitsy", time_until=timestamp))
+print(result)
 """
-result = github_client.get_pulls("https://github.com/matslyk0/Gitsy", state="closed")
+
+result = asyncio.run(github_client.get_pulls("https://github.com/matslyk0/Gitsy", state="closed"))
 print(json.dumps(result, indent=4))
-print(len(result))
 """
