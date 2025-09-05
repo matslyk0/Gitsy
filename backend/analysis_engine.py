@@ -27,26 +27,29 @@ async def get_commit_frequency(
     """
     commits = await github_client.get_commits(repo_url)
 
-    if len(commits) < 2:
+    total_commits = len(commits)
+    if total_commits < 2:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
     if time_from:
         keys = ["commit", "author", "date"]
-        first_timestamp = analysis_helpers.get_first_timestamp(time_from, commits, keys)
+        first_timestamp, commits_diff = analysis_helpers.get_first_timestamp(time_from, commits, keys)
+        total_commits -= commits_diff
     else:
         first_timestamp = commits[-1]["commit"]["author"]["date"]
         first_timestamp = analysis_helpers.parse_timestamp(first_timestamp)
 
     if time_until:
         keys = ["commit", "author", "date"]
-        latest_timestamp = analysis_helpers.get_latest_timestamp(time_until, commits, keys)
+        latest_timestamp, commits_diff = analysis_helpers.get_latest_timestamp(time_until, commits, keys)
+        total_commits -= commits_diff
     else:
         latest_timestamp = commits[0]["commit"]["author"]["date"]
         latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
 
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
-    return total_hours / len(commits)
+    return total_hours / total_commits
 
 
 async def get_code_churn(
@@ -83,7 +86,7 @@ async def get_code_churn(
 
     for commit in commits:
         sha = commit["sha"]
-        commit_info = github_client.get_commit_info(repo_url, sha)
+        commit_info = await github_client.get_commit_info(repo_url, sha)
         stats = commit_info["stats"]
 
         total += stats["total"]
