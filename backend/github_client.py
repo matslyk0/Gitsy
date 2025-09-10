@@ -188,5 +188,4 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
 
     return response.json()
 
-
-asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))
+#print(len(asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))))

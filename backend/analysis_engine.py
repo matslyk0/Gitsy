@@ -6,6 +6,7 @@ import backend.analysis_helpers as analysis_helpers
 
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
+from backend.exceptions import InsufficientDataError
 
 
 async def get_commit_frequency(
@@ -181,13 +182,4 @@ async def get_pull_times(
 
     return total_time / len(pulls)
 
-
-timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
-timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
-result = asyncio.run(get_pull_times("https://github.com/matslyk0/Gitsy", time_until=timestamp))
-print(result)
-"""
-
-result = asyncio.run(github_client.get_pulls("https://github.com/matslyk0/Gitsy", state="closed"))
-print(json.dumps(result, indent=4))
-"""
+#print(asyncio.run(get_commit_frequency("https://github.com/matslyk0/Gitsy")))
