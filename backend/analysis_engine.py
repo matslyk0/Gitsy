@@ -1,12 +1,15 @@
 import json
+import httpx
+import asyncio
 import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
+from backend.exceptions import InsufficientDataError
 
 
-def get_commit_frequency(
+async def get_commit_frequency(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours between commits for a repository.
@@ -23,31 +26,34 @@ def get_commit_frequency(
     Raises:
          InsufficientDataError: If the repository has less than 2 commits.
     """
-    commits = github_client.get_commits(repo_url)
+    commits = await github_client.get_commits(repo_url)
 
-    if len(commits) < 2:
+    total_commits = len(commits)
+    if total_commits < 2:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
     if time_from:
         keys = ["commit", "author", "date"]
-        first_timestamp = analysis_helpers.get_first_timestamp(time_from, commits, keys)
+        first_timestamp, commits_diff = analysis_helpers.get_first_timestamp(time_from, commits, keys)
+        total_commits -= commits_diff
     else:
         first_timestamp = commits[-1]["commit"]["author"]["date"]
         first_timestamp = analysis_helpers.parse_timestamp(first_timestamp)
 
     if time_until:
         keys = ["commit", "author", "date"]
-        latest_timestamp = analysis_helpers.get_latest_timestamp(time_until, commits, keys)
+        latest_timestamp, commits_diff = analysis_helpers.get_latest_timestamp(time_until, commits, keys)
+        total_commits -= commits_diff
     else:
         latest_timestamp = commits[0]["commit"]["author"]["date"]
         latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
 
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
-    return total_hours / len(commits)
+    return total_hours / total_commits
 
 
-def get_code_churn(
+async def get_code_churn(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> dict:
     """Calculates the number of additions, deletions, the total of both, and the net additions.
@@ -65,7 +71,7 @@ def get_code_churn(
     Raises:
          InsufficientDataError: If the repository has no commits.
     """
-    commits = github_client.get_commits(repo_url)
+    commits = await github_client.get_commits(repo_url)
     if len(commits) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -81,7 +87,7 @@ def get_code_churn(
 
     for commit in commits:
         sha = commit["sha"]
-        commit_info = github_client.get_commit_info(repo_url, sha)
+        commit_info = await github_client.get_commit_info(repo_url, sha)
         stats = commit_info["stats"]
 
         total += stats["total"]
@@ -93,7 +99,7 @@ def get_code_churn(
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-def get_issue_times(
+async def get_issue_times(
         repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for an issue to be closed.
@@ -110,7 +116,7 @@ def get_issue_times(
     Raises:
          InsufficientDataError: If the repository has no closed issues.
     """
-    issues = github_client.get_issues(repo_url)
+    issues = await github_client.get_issues(repo_url)
     if len(issues) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -135,7 +141,7 @@ def get_issue_times(
     return total_time / len(issues)
 
 
-def get_pull_times(
+async def get_pull_times(
         repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for a pull request to be merged or closed.
@@ -152,7 +158,7 @@ def get_pull_times(
     Raises:
          InsufficientDataError: If there are no closed or merged pull requests.
     """
-    pulls = github_client.get_pulls(repo_url)
+    pulls = await github_client.get_pulls(repo_url)
     if len(pulls) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -176,13 +182,4 @@ def get_pull_times(
 
     return total_time / len(pulls)
 
-
-timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
-timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
-print(get_pull_times("https://github.com/matslyk0/Gitsy", time_until=timestamp))
-
-"""
-result = github_client.get_pulls("https://github.com/matslyk0/Gitsy", state="closed")
-print(json.dumps(result, indent=4))
-print(len(result))
-"""
+#print(asyncio.run(get_commit_frequency("https://github.com/matslyk0/Gitsy")))

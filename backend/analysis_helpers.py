@@ -34,7 +34,7 @@ def dict_pathfind(dictionary: dict, keys: list):
     return item
 
 
-def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: list) -> datetime:
+def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: list) -> tuple[datetime, int]:
     """Calculates the closest timestamp after the one provided.
 
     Args:
@@ -44,27 +44,32 @@ def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: lis
 
     Returns:
         datetime: The closest timestamp after the one provided.
+        int: The number of commits that need to be ignored.
 
     Raises:
          TimeOutOfBoundsError: If there is no closest timestamp after the one provided.
     """
+    commits_diff = 0
+
     earliest_dictionary = dictionaries[::-1][0]
     earliest_timestamp_raw = dict_pathfind(earliest_dictionary, keys)
     earliest_timestamp = parse_timestamp(earliest_timestamp_raw)
     if earliest_timestamp >= time_from:
-        return earliest_timestamp
+        return earliest_timestamp, commits_diff
+
 
     remaining_dictionaries = dictionaries[::-1][1:]
     for dictionary in remaining_dictionaries:
+        commits_diff += 1
         timestamp_raw = dict_pathfind(dictionary, keys)
         timestamp = parse_timestamp(timestamp_raw)
         if timestamp >= time_from:
-            return timestamp
+            return timestamp, commits_diff
 
     raise TimeOutOfBoundsError("Could not find nearest timestamp - try an earlier one.")
 
 
-def get_latest_timestamp(time_until: datetime, dictionaries: list[dict], keys: list) -> datetime:
+def get_latest_timestamp(time_until: datetime, dictionaries: list[dict], keys: list) -> tuple[datetime, int]:
     """Calculates the closest timestamp before the one provided.
 
     Args:
@@ -74,22 +79,26 @@ def get_latest_timestamp(time_until: datetime, dictionaries: list[dict], keys: l
 
     Returns:
         datetime: The closest timestamp before the one provided.
+        int: The number of commits that need to be ignored.
 
     Raises:
          TimeOutOfBoundsError: If there is no closest timestamp before the one provided.
     """
+    commits_diff = 0
+
     latest_dictionary = dictionaries[0]
     latest_timestamp_raw = dict_pathfind(latest_dictionary, keys)
     latest_timestamp = parse_timestamp(latest_timestamp_raw)
     if latest_timestamp <= time_until:
-        return latest_timestamp
+        return latest_timestamp, commits_diff
 
     remaining_dictionaries = dictionaries[1:]
     for dictionary in remaining_dictionaries:
+        commits_diff += 1
         timestamp_raw = dict_pathfind(dictionary, keys)
         timestamp = parse_timestamp(timestamp_raw)
         if timestamp <= time_until:
-            return timestamp
+            return timestamp, commits_diff
 
     raise TimeOutOfBoundsError("Could not find nearest timestamp - try a later one.")
 

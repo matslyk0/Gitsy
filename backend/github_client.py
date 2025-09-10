@@ -1,7 +1,9 @@
 import re
 import os
-import json
-import requests
+import httpx
+import asyncio
+import logging
+from urllib.parse import urlencode
 from dotenv import load_dotenv
 from backend.exceptions import *
 
@@ -24,8 +26,6 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     if type(data) is None:
         return []
 
-    print(data)
-
     del data["incomplete_results"]
     del data["repository_selection"]
     del data["total_count"]
@@ -36,7 +36,7 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     return data
 
 
-def get_paginated_data(
+async def get_paginated_data(
     url: str, extra_params: dict = None, extra_headers: dict = None
 ) -> list[dict]:
     """Makes a GET request to all pages at the endpoint.
@@ -58,8 +58,11 @@ def get_paginated_data(
     params = {"per_page": 30}
     if extra_params is not None:
         params = params | extra_params
+    query_string = urlencode(params)
+    url = f"{url}?{query_string}"
 
     headers = {
+        "User-Agent": "Gitsy/0.1",
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
@@ -67,7 +70,8 @@ def get_paginated_data(
         headers = headers | extra_headers
 
     while pages_remaining:
-        response = requests.get(url, params=params, headers=headers)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
         if response.status_code != 200:
             raise GitHubAPIError(
                 f"Failed to obtain data. Error code {response.status_code}"
@@ -75,7 +79,6 @@ def get_paginated_data(
 
         parsed_data = parse_data(response.json())
         data += parsed_data
-
         if "link" not in response.headers:
             break
 
@@ -95,7 +98,7 @@ def parse_url(repo_url: str):
     return f"https://api.github.com/repos/{url}"
 
 
-def get_commits(repo_url: str) -> list[dict]:
+async def get_commits(repo_url: str) -> list[dict]:
     """Obtains the commits of a public repository
 
     Args:
@@ -108,7 +111,7 @@ def get_commits(repo_url: str) -> list[dict]:
     url = f"{parse_url(repo_url)}/commits"
 
     try:
-        commits = get_paginated_data(url)
+        commits = await get_paginated_data(url)
     except GitHubAPIError as e:
         print(e)
     except Exception as e:
@@ -117,7 +120,7 @@ def get_commits(repo_url: str) -> list[dict]:
     return commits
 
 
-def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
+async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     """Obtains all issues of a repository.
 
     Args:
@@ -131,7 +134,7 @@ def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     url = f"{parse_url(repo_url)}/issues"
 
     try:
-        issues = get_paginated_data(url, extra_params={"state": f"{state}"})
+        issues = await get_paginated_data(url, extra_params={"state": f"{state}"})
     except GitHubAPIError as e:
         print(e)
     except Exception as e:
@@ -140,7 +143,7 @@ def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     return issues
 
 
-def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
+async def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
     """Obtains all pull requests of a repository.
 
     Args:
@@ -154,7 +157,7 @@ def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
     url = f"{parse_url(repo_url)}/pulls"
 
     try:
-        pulls = get_paginated_data(url, extra_params={"state": f"{state}"})
+        pulls = await get_paginated_data(url, extra_params={"state": f"{state}"})
     except GitHubAPIError as e:
         print(e)
     except Exception as e:
@@ -163,7 +166,7 @@ def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
     return pulls
 
 
-def get_commit_info(repo_url: str, sha: str) -> dict:
+async def get_commit_info(repo_url: str, sha: str) -> dict:
     """Obtains detailed information about a commit.
 
     Args:
@@ -178,9 +181,11 @@ def get_commit_info(repo_url: str, sha: str) -> dict:
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
-
-    response = requests.get(f"{url}/{sha}", headers=headers)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{url}/{sha}", headers=headers)
     if response.status_code != 200:
         raise CommitInfoError(f"Failed to obtain commit info. Error code {response.status_code}")
 
     return response.json()
+
+#print(len(asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))))
