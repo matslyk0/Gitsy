@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import JSONB
 from typing import Dict
+from datetime import datetime
 
 class Repository(BaseModel):
     repo_id: int
@@ -21,8 +22,8 @@ class Report(BaseModel):
     issue_times: float
     pull_times: float
 
-    created_at: str
-    last_updated: str
+    created_at: datetime
+    last_updated: datetime
 
 
 class ReportOut(BaseModel):
