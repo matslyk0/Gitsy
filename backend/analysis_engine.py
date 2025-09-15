@@ -182,4 +182,12 @@ async def get_pull_times(
 
     return total_time / len(pulls)
 
+
+async def get_last_updated(repo_url: str) -> datetime:
+    """Rudimentary function that checks the last time a repo was updated."""
+    commits = await get_commits(repo_url)
+    latest_commit = commits[0]
+    latest_timestamp = latest_commit["commit"]["author"]["date"]
+    return latest_timestamp
+
 #print(asyncio.run(get_commit_frequency("https://github.com/matslyk0/Gitsy")))

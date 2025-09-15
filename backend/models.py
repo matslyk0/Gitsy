@@ -1,35 +1,39 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import relationship
+
 from backend.database import Base
-
-
-class Users(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, index=True)
-    hashed_password = Column(String, index=True)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
 
 
 class Repositories(Base):
     __tablename__ = "repositories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    owner = Column(String, index=True)
-    name = Column(String, index=True)
+    repo_id = Column(Integer, primary_key=True, index=True)
+    repo_owner = Column(String, index=True)
+    repo_name = Column(String, index=True)
+
+    reports = relationship("Reports", back_populates="repository")
 
 
-class Analysis(Base):
-    __tablename__ = "analysis"
+class Reports(Base):
+    __tablename__ = "reports"
 
-    id = Column(Integer, primary_key=True, index=True)
-    repository_id = Column(Integer, ForeignKey("repositories.id"))
-    metric1 = Column(String, index=True)
-    metric2 = Column(String, index=True)
-    created_at = Column(String, index=True)
+    report_id = Column(Integer, primary_key=True, index=True)
+    repo_id = Column(Integer, ForeignKey("repositories.repo_id"), index=True)
 
+    commit_frequency = Column(Float, index=True)
+    code_churn = Column(JSONB, index=True)
+    issue_times = Column(Float, index=True)
+    pull_times = Column(Float, index=True)
 
-class Dummy(Base):
-    __tablename__ = "dummy"
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), index=True)
+    last_updated = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        index=True,
+    )
 
-    id = Column(Integer, primary_key=True, index=True)
-    item = Column(String, index=True)
+    repository = relationship("Repositories", back_populates="reports")
