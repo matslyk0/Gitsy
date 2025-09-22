@@ -6,6 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DB_HOST: "test-database"
       POSTGRES_DB: ${POSTGRES_TEST_DB}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       test-database:
         condition: service_healthy
@@ -28,5 +29,14 @@ services:
       - postgres-test-data:/var/lib/postgresql/data
 
 
+  redis-test-db:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-test-data:/var/lib/redis/data
+
+
 volumes:
+  redis-test-data:
   postgres-test-data:
