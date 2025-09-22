@@ -1,11 +1,10 @@
-import json
 import asyncio
 import logging
 import backend.analysis_engine as analysis_engine
 
 from zoneinfo import ZoneInfo
 from datetime import datetime
-from backend.exceptions import GitHubAPIError, InsufficientDataError, CommitInfoError
+from backend.exceptions import InsufficientDataError, CommitInfoError
 
 
 def test_commit_frequency() -> None:
