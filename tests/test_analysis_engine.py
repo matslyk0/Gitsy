@@ -15,7 +15,9 @@ def test_commit_frequency() -> None:
     timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
 
     try:
-        frequency = asyncio.run(analysis_engine.get_commit_frequency(repo_url, time_until=timestamp))
+        frequency = asyncio.run(
+            analysis_engine.get_commit_frequency(repo_url, time_until=timestamp)
+        )
     except InsufficientDataError as e:
         print(e)
     except Exception as e:
@@ -35,16 +37,15 @@ def test_code_churn() -> None:
     time_until = time_until.replace(tzinfo=ZoneInfo("UTC"))
 
     try:
-        code_churn = asyncio.run(analysis_engine.get_code_churn(repo_url, time_from, time_until))
+        code_churn = asyncio.run(
+            analysis_engine.get_code_churn(repo_url, time_from, time_until)
+        )
     except CommitInfoError as e:
         print(e)
     except Exception as e:
         logging.exception(f"Something unexpected went wrong: {e}")
 
-    assert code_churn == {'additions': 387,
-                          'deletions': 73,
-                          'total': 460,
-                          'net': 314}
+    assert code_churn == {"additions": 387, "deletions": 73, "total": 460, "net": 314}
 
 
 def test_issue_times() -> None:
@@ -55,7 +56,9 @@ def test_issue_times() -> None:
     timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
 
     try:
-        issue_close_time = asyncio.run(analysis_engine.get_issue_times(repo_url, time_until=timestamp))
+        issue_close_time = asyncio.run(
+            analysis_engine.get_issue_times(repo_url, time_until=timestamp)
+        )
     except InsufficientDataError as e:
         print(e)
     except Exception as e:
@@ -72,7 +75,9 @@ def test_pull_times() -> None:
     timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
 
     try:
-        pull_close_time = asyncio.run(analysis_engine.get_pull_times(repo_url, time_until=timestamp))
+        pull_close_time = asyncio.run(
+            analysis_engine.get_pull_times(repo_url, time_until=timestamp)
+        )
     except InsufficientDataError as e:
         print(e)
     except Exception as e:
