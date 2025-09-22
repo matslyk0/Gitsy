@@ -33,7 +33,7 @@ class Reports(Base):
         DateTime,
         default=datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc),
-        index=True,
+        index=True
     )
 
     repository = relationship("Repositories", back_populates="reports")
