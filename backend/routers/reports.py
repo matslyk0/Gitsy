@@ -4,13 +4,10 @@ import backend.schemas as schemas
 import backend.crud as crud
 import backend.analysis_engine as analysis_engine
 
-from typing import Annotated
-from sqlalchemy.orm import Session
-from fastapi import Depends, APIRouter
-from backend.database import get_db
+from backend.database import db_dependency
+from fastapi import APIRouter
 
 
-db_dependency = Annotated[Session, Depends(get_db)]
 router = APIRouter()
 
 
