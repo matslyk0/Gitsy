@@ -11,11 +11,6 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.get("/create-report", response_model=str)
-def create_report_page():
-    return "Let's create a report!"
-
-
 @router.get("/create-report/{repo_url:path}", response_model=schemas.ReportOut)
 async def create_report(repo_url: str, db: db_dependency):
     repo_id = crud.get_repo_id(repo_url, db)
