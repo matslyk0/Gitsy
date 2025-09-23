@@ -1,11 +1,11 @@
 import re
 import os
 import httpx
-import asyncio
 import logging
+
 from urllib.parse import urlencode
 from dotenv import load_dotenv
-from backend.exceptions import *
+from backend.exceptions import GitHubAPIError, CommitInfoError
 
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -15,7 +15,7 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     """Converts the data received from the GitHub API into a list[dict]
 
     Args:
-        data (list[dict] | dict | None): The data obtained when making a GitHub API GET request.
+        data (list[dict] | dict | None): The data obtained from GitHub API.
 
     Returns:
         list[dict]: The data as a list of dictionaries.
@@ -125,7 +125,8 @@ async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the issue, "open", "closed", "all". Default "closed".
+        state (str): The desired state of the issue, "open", "closed", "all".
+            Default is "closed".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
@@ -148,7 +149,8 @@ async def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the pull request, "open", "closed", "all". Default "closed".
+        state (str): The desired state of the pull request, "open", "closed", "all".
+            Default is "closed".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.
@@ -184,8 +186,11 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{url}/{sha}", headers=headers)
     if response.status_code != 200:
-        raise CommitInfoError(f"Failed to obtain commit info. Error code {response.status_code}")
+        raise CommitInfoError(
+            f"Failed to obtain commit info. Error code {response.status_code}"
+        )
 
     return response.json()
 
-#print(len(asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))))
+
+# print(len(asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))))

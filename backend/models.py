@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 
 from backend.database import Base
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime
 
 
 class Repositories(Base):
@@ -33,7 +33,7 @@ class Reports(Base):
         DateTime,
         default=datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc),
-        index=True
+        index=True,
     )
 
     repository = relationship("Repositories", back_populates="reports")

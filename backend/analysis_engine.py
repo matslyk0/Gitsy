@@ -1,10 +1,6 @@
-import json
-import httpx
-import asyncio
 import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
-from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from backend.exceptions import InsufficientDataError
 
@@ -34,7 +30,9 @@ async def get_commit_frequency(
 
     if time_from:
         keys = ["commit", "author", "date"]
-        first_timestamp, commits_diff = analysis_helpers.get_first_timestamp(time_from, commits, keys)
+        first_timestamp, commits_diff = analysis_helpers.get_first_timestamp(
+            time_from, commits, keys
+        )
         total_commits -= commits_diff
     else:
         first_timestamp = commits[-1]["commit"]["author"]["date"]
@@ -42,7 +40,9 @@ async def get_commit_frequency(
 
     if time_until:
         keys = ["commit", "author", "date"]
-        latest_timestamp, commits_diff = analysis_helpers.get_latest_timestamp(time_until, commits, keys)
+        latest_timestamp, commits_diff = analysis_helpers.get_latest_timestamp(
+            time_until, commits, keys
+        )
         total_commits -= commits_diff
     else:
         latest_timestamp = commits[0]["commit"]["author"]["date"]
@@ -56,7 +56,8 @@ async def get_commit_frequency(
 async def get_code_churn(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> dict:
-    """Calculates the number of additions, deletions, the total of both, and the net additions.
+    """Calculates the number of additions, deletions, the total of both,
+        and the net additions.
 
     Args:
         repo_url (str): The URL of the repository in the format
@@ -100,7 +101,7 @@ async def get_code_churn(
 
 
 async def get_issue_times(
-        repo_url: str, time_from: datetime = None, time_until: datetime = None
+    repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for an issue to be closed.
 
@@ -125,7 +126,9 @@ async def get_issue_times(
     if time_from:
         issues = analysis_helpers.trim_prior_entries(time_from, issues, ["created_at"])
     if time_until:
-        issues = analysis_helpers.trim_leading_entries(time_until, issues, ["closed_at"])
+        issues = analysis_helpers.trim_leading_entries(
+            time_until, issues, ["closed_at"]
+        )
 
     for issue in issues:
         created_at = issue["created_at"].replace("Z", "+00:00")
@@ -142,7 +145,7 @@ async def get_issue_times(
 
 
 async def get_pull_times(
-        repo_url: str, time_from: datetime = None, time_until: datetime = None
+    repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for a pull request to be merged or closed.
 
@@ -185,9 +188,7 @@ async def get_pull_times(
 
 async def get_last_updated(repo_url: str) -> datetime:
     """Rudimentary function that checks the last time a repo was updated."""
-    commits = await get_commits(repo_url)
+    commits = await github_client.get_commits(repo_url)
     latest_commit = commits[0]
     latest_timestamp = latest_commit["commit"]["author"]["date"]
     return latest_timestamp
-
-#print(asyncio.run(get_commit_frequency("https://github.com/matslyk0/Gitsy")))

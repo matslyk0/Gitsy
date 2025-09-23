@@ -12,7 +12,8 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "fallback_db")
 DB_HOST = os.getenv("DB_HOST", "will_break_if_used")
 
-DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}"
+DATABASE_URL = (f"postgresql+psycopg2://{POSTGRES_USER}:"
+                f"{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -28,4 +29,6 @@ def get_db():
 
 
 # type alias needed so importing in another file doesn't cause IDE to flag an error
-db_dependency: type[Annotated[Session, Depends(get_db)]] = Annotated[Session, Depends(get_db)]
+db_dependency: type[Annotated[Session, Depends(get_db)]] = Annotated[
+    Session, Depends(get_db)
+]

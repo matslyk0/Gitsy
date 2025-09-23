@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from sqlalchemy.dialects.postgresql import JSONB
 from typing import Dict
 from datetime import datetime
+
 
 class Repository(BaseModel):
     repo_id: int
