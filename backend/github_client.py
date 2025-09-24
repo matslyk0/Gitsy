@@ -95,10 +95,15 @@ async def get_paginated_data(
     return data
 
 
-def parse_url(repo_url: str):
+def parse_url(repo_url: str, target: str = None):
     """Parses a repository URL into the GitHub API format"""
-    url = repo_url.removeprefix("https://github.com/")
-    return f"https://api.github.com/repos/{url}"
+    owner_slash_repo = repo_url.removeprefix("https://github.com/")
+    url = f"https://api.github.com/repos/{owner_slash_repo}"
+
+    if target is not None:
+        url += "/"+target
+
+    return url
 
 
 async def get_commits(repo_url: str) -> list[dict]:
@@ -111,7 +116,7 @@ async def get_commits(repo_url: str) -> list[dict]:
         list[dict]: A list with a dictionary for each commit.
     """
     commits = []
-    url = f"{parse_url(repo_url)}/commits"
+    url = parse_url(repo_url, "commits")
 
     try:
         commits = await get_paginated_data(url)
@@ -135,7 +140,7 @@ async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
     """
     issues = []
-    url = f"{parse_url(repo_url)}/issues"
+    url = parse_url(repo_url, "issues")
 
     try:
         issues = await get_paginated_data(url, extra_params={"state": f"{state}"})
@@ -159,7 +164,7 @@ async def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.
     """
     pulls = []
-    url = f"{parse_url(repo_url)}/pulls"
+    url = parse_url(repo_url, "pulls")
 
     try:
         pulls = await get_paginated_data(url, extra_params={"state": f"{state}"})
@@ -181,7 +186,7 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
     Returns:
         dict: A dictionary containing the information about the commit.
     """
-    url = f"{parse_url(repo_url)}/commits"
+    url = parse_url(repo_url, "commits")
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -194,6 +199,3 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
         )
 
     return response.json()
-
-
-# print(len(asyncio.run(get_commits("https://github.com/matslyk0/Gitsy"))))
