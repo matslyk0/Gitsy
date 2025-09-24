@@ -23,7 +23,7 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     if isinstance(data, list):
         return data
 
-    if type(data) is None:
+    if data is None:
         return []
 
     # deleting unwanted keys
