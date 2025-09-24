@@ -101,7 +101,7 @@ def parse_url(repo_url: str, target: str = None):
     url = f"https://api.github.com/repos/{owner_slash_repo}"
 
     if target is not None:
-        url += "/"+target
+        url += "/" + target
 
     return url
 

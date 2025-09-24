@@ -12,8 +12,10 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "fallback_db")
 DB_HOST = os.getenv("DB_HOST", "will_break_if_used")
 
-DATABASE_URL = (f"postgresql+psycopg2://{POSTGRES_USER}:"
-                f"{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}")
+DATABASE_URL = (
+    f"postgresql+psycopg2://{POSTGRES_USER}:"
+    f"{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}"
+)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
