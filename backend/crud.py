@@ -12,8 +12,8 @@ async def create_db_report(
     report_raw = await asyncio.gather(
         analysis_engine.get_commit_frequency(repo_url),
         analysis_engine.get_code_churn(repo_url),
-        analysis_engine.get_issue_times(repo_url),
-        analysis_engine.get_pull_times(repo_url),
+        analysis_engine.get_issues_close_time(repo_url),
+        analysis_engine.get_pulls_close_time(repo_url),
     )
 
     report = models.Reports(

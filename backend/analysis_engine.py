@@ -100,7 +100,7 @@ async def get_code_churn(
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-async def get_issue_times(
+async def get_issues_close_time(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for an issue to be closed.
@@ -144,7 +144,7 @@ async def get_issue_times(
     return total_time / len(issues)
 
 
-async def get_pull_times(
+async def get_pulls_close_time(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:
     """Calculates the average number of hours for a pull request to be merged or closed.
