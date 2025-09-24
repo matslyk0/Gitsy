@@ -26,12 +26,15 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     if type(data) is None:
         return []
 
+    # deleting unwanted keys
     del data["incomplete_results"]
     del data["repository_selection"]
     del data["total_count"]
 
-    namespace_key = data.keys()[0]
-    data = data[namespace_key]
+    # getting the first object of data
+    keys = iter(data)
+    first_key = next(keys)
+    data = data[first_key]
 
     return data
 
