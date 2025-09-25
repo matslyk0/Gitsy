@@ -25,6 +25,7 @@ async def get_commit_frequency(
     commits = await github_client.get_commits(repo_url)
 
     total_commits = len(commits)
+    print(f"total commits before = {total_commits}")
     if total_commits < 2:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -48,6 +49,7 @@ async def get_commit_frequency(
         latest_timestamp = commits[0]["commit"]["author"]["date"]
         latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
 
+    print(f"total commits after = {total_commits}")
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
     return total_hours / total_commits
@@ -121,15 +123,18 @@ async def get_issues_close_time(
     if len(issues) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
+    if time_from or time_until:
+        # need to sort by "closed_at" before trimming, issues are sorted by "created_at"
+        issues = sorted(issues, key=lambda _: _["closed_at"], reverse=True)
+        keys = ["closed_at"]
+
+        if time_from:
+            # fyi: GitHub's API can't filter by "closed_at", nor can it filter "up to"
+            issues = analysis_helpers.trim_prior_entries(time_from, issues, keys)
+        if time_until:
+            issues = analysis_helpers.trim_leading_entries(time_until, issues, keys)
+
     total_time = 0
-
-    if time_from:
-        issues = analysis_helpers.trim_prior_entries(time_from, issues, ["created_at"])
-    if time_until:
-        issues = analysis_helpers.trim_leading_entries(
-            time_until, issues, ["closed_at"]
-        )
-
     for issue in issues:
         created_at = issue["created_at"].replace("Z", "+00:00")
         created_at = datetime.fromisoformat(created_at)
@@ -165,13 +170,16 @@ async def get_pulls_close_time(
     if len(pulls) == 0:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
+    if time_from or time_until:
+        # need to sort by "closed_at" before trimming, pulls are sorted by "created_at"
+        pulls = sorted(pulls, key=lambda _: _["closed_at"], reverse=True)
+        keys = ["closed_at"]
+        if time_from:
+            pulls = analysis_helpers.trim_prior_entries(time_from, pulls, keys)
+        if time_until:
+            pulls = analysis_helpers.trim_leading_entries(time_until, pulls, keys)
+
     total_time = 0
-
-    if time_from:
-        pulls = analysis_helpers.trim_prior_entries(time_from, pulls, ["created_at"])
-    if time_until:
-        pulls = analysis_helpers.trim_leading_entries(time_until, pulls, ["closed_at"])
-
     for pull in pulls:
         created_at = pull["created_at"].replace("Z", "+00:00")
         created_at = datetime.fromisoformat(created_at)

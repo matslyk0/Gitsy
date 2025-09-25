@@ -115,7 +115,8 @@ def trim_prior_entries(
 
     Args:
         time_from (datetime): The time from which dictionaries are included.
-        dictionaries (list[dict]): A list of dictionaries with timestamps.
+        dictionaries (list[dict]): A list of dictionaries with timestamps, sorted by
+            timestamp in descending order.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:
@@ -153,7 +154,8 @@ def trim_leading_entries(
 
     Args:
         time_until (datetime): The time until which dictionaries are included.
-        dictionaries (list[dict]): A list of dictionaries with timestamps.
+        dictionaries (list[dict]): A list of dictionaries with timestamps, sorted by
+            timestamp in descending order.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:
