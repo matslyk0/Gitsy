@@ -58,7 +58,7 @@ async def get_paginated_data(
     pages_remaining = True
     data = []
 
-    params = {"per_page": 30}
+    params = {"per_page": 100}
     if extra_params is not None:
         params = params | extra_params
     query_string = urlencode(params)
