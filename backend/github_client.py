@@ -128,13 +128,16 @@ async def get_commits(repo_url: str) -> list[dict]:
     return commits
 
 
-async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
+async def get_issues(
+        repo_url: str, state: str = "closed", sort: str = "created"
+) -> list[dict]:
     """Obtains all issues of a repository.
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the issue, "open", "closed", "all".
-            Default is "closed".
+        state (str): The state of issues: "open", "closed", "all". Default is "closed".
+        sort (str): The sorting of issues: "created", "updated", "comments". Default is
+            "created".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
@@ -143,7 +146,9 @@ async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     url = parse_url(repo_url, "issues")
 
     try:
-        issues = await get_paginated_data(url, extra_params={"state": f"{state}"})
+        issues = await get_paginated_data(
+            url, extra_params={"state": state, "sort": sort}
+        )
     except GitHubAPIError as e:
         print(e)
     except Exception as e:
@@ -152,13 +157,16 @@ async def get_issues(repo_url: str, state: str = "closed") -> list[dict]:
     return issues
 
 
-async def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
+async def get_pulls(
+        repo_url: str, state: str = "closed", sort: str = "created"
+) -> list[dict]:
     """Obtains all pull requests of a repository.
 
     Args:
         repo_url (str): The repository URL in the format https://github.com/user/repo
-        state (str): The desired state of the pull request, "open", "closed", "all".
-            Default is "closed".
+        state (str): The state of PRs, "open", "closed", "all". Default is "closed".
+        sort (str): The sorting of PRs: "created", "updated", "popularity",
+            "long-running". Default is "created".
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.
@@ -167,7 +175,9 @@ async def get_pulls(repo_url: str, state: str = "closed") -> list[dict]:
     url = parse_url(repo_url, "pulls")
 
     try:
-        pulls = await get_paginated_data(url, extra_params={"state": f"{state}"})
+        pulls = await get_paginated_data(
+            url, extra_params={"state": state, "sort": sort}
+        )
     except GitHubAPIError as e:
         print(e)
     except Exception as e:
