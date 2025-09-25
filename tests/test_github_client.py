@@ -42,6 +42,12 @@ def test_parse_url_with_target() -> None:
     assert result == "https://api.github.com/repos/matslyk0/Gitsy/commits"
 
 
+def test_get_owner_and_response() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    result = github_client.get_owner_and_reponame(repo_url)
+    assert result == ("matslyk0", "Gitsy")
+
+
 # --------------------------------- Integration Tests ---------------------------------
 
 

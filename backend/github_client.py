@@ -95,10 +95,17 @@ async def get_paginated_data(
     return data
 
 
+def get_owner_and_reponame(repo_url: str) -> tuple:
+    owner_and_repo = repo_url.removeprefix("https://github.com/")
+    owner, _, repo_name = owner_and_repo.partition("/")
+
+    return owner, repo_name
+
+
 def parse_url(repo_url: str, target: str = None):
     """Parses a repository URL into the GitHub API format"""
-    owner_slash_repo = repo_url.removeprefix("https://github.com/")
-    url = f"https://api.github.com/repos/{owner_slash_repo}"
+    owner, repo_name = get_owner_and_reponame(repo_url)
+    url = f"https://api.github.com/repos/{owner}/{repo_name}"
 
     if target is not None:
         url += "/" + target
