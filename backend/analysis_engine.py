@@ -25,7 +25,6 @@ async def get_commit_frequency(
     commits = await github_client.get_commits(repo_url)
 
     total_commits = len(commits)
-    print(f"total commits before = {total_commits}")
     if total_commits < 2:
         raise InsufficientDataError("Not enough data to perform calculation.")
 
@@ -49,7 +48,6 @@ async def get_commit_frequency(
         latest_timestamp = commits[0]["commit"]["author"]["date"]
         latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
 
-    print(f"total commits after = {total_commits}")
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
     return total_hours / total_commits
