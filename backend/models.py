@@ -28,11 +28,15 @@ class Reports(Base):
     issue_times = Column(Float, index=True)
     pull_times = Column(Float, index=True)
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc), index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        index=True
+    )
     last_updated = Column(
-        DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         index=True,
     )
 
