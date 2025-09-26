@@ -48,6 +48,16 @@ def test_get_last_updated() -> None:
     assert isinstance(last_updated, str)
 
 
+def test_create_report() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    report = asyncio.run(analysis_engine.create_report(repo_url))
+
+    assert report["commit_frequency"] is not None
+    assert report["code_churn"] is not None
+    assert report["issue_times"] is not None
+    assert report["pull_times"] is not None
+
+
 # <<< Time Until >>>
 
 
