@@ -27,7 +27,7 @@ async def create_db_report(repo_url: str, db: Session) -> int:
     report = models.Reports(
         commit_frequency=report_raw["commit_frequency"],
         code_churn=report_raw["code_churn"],
-        issue_times=report_raw["code_churn"],
+        issue_times=report_raw["issue_times"],
         pull_times=report_raw["pull_times"]
     )
 
