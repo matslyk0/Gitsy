@@ -45,7 +45,7 @@ def test_get_last_updated() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
     last_updated = asyncio.run(analysis_engine.get_last_updated(repo_url))
 
-    assert isinstance(last_updated, str)
+    assert isinstance(last_updated, datetime)
 
 
 def test_create_report() -> None:

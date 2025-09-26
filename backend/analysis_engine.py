@@ -193,12 +193,12 @@ async def get_pulls_close_time(
     return total_time / len(pulls)
 
 
-async def get_last_updated(repo_url: str) -> str:
+async def get_last_updated(repo_url: str) -> datetime:
     """Rudimentary function that checks the last time a repo was updated."""
     commits = await github_client.get_commits(repo_url)
     latest_commit = commits[0]
     latest_timestamp = latest_commit["commit"]["author"]["date"]
-    return latest_timestamp
+    return analysis_helpers.parse_timestamp(latest_timestamp)
 
 
 async def create_report(repo_url: str) -> dict:
