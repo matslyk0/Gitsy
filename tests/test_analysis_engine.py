@@ -41,6 +41,13 @@ def test_get_pulls_close_time() -> None:
     assert pulls_close_time is not None
 
 
+def test_get_last_updated() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    last_updated = asyncio.run(analysis_engine.get_last_updated(repo_url))
+
+    assert isinstance(last_updated, str)
+
+
 # <<< Time Until >>>
 
 
