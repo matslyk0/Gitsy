@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from backend.exceptions import TimeOutOfBoundsError
 
 
@@ -34,12 +34,15 @@ def dict_pathfind(dictionary: dict, keys: list):
     return item
 
 
-def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: list) -> tuple[datetime, int]:
+def get_first_timestamp(
+    time_from: datetime, dictionaries: list[dict], keys: list
+) -> tuple[datetime, int]:
     """Calculates the closest timestamp after the one provided.
 
     Args:
         time_from (datetime): The time to start looking from.
-        dictionaries (list[dict]): The dictionaries to look through.
+        dictionaries (list[dict]): The dictionaries to look through, in descending
+            order by timestamp.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:
@@ -57,7 +60,6 @@ def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: lis
     if earliest_timestamp >= time_from:
         return earliest_timestamp, commits_diff
 
-
     remaining_dictionaries = dictionaries[::-1][1:]
     for dictionary in remaining_dictionaries:
         commits_diff += 1
@@ -69,12 +71,15 @@ def get_first_timestamp(time_from: datetime, dictionaries: list[dict], keys: lis
     raise TimeOutOfBoundsError("Could not find nearest timestamp - try an earlier one.")
 
 
-def get_latest_timestamp(time_until: datetime, dictionaries: list[dict], keys: list) -> tuple[datetime, int]:
+def get_latest_timestamp(
+    time_until: datetime, dictionaries: list[dict], keys: list
+) -> tuple[datetime, int]:
     """Calculates the closest timestamp before the one provided.
 
     Args:
         time_until (datetime): The time to start looking before.
-        dictionaries (list[dict]): The dictionaries to look through.
+        dictionaries (list[dict]): The dictionaries to look through, in descending
+            order by timestamp.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:
@@ -103,12 +108,15 @@ def get_latest_timestamp(time_until: datetime, dictionaries: list[dict], keys: l
     raise TimeOutOfBoundsError("Could not find nearest timestamp - try a later one.")
 
 
-def trim_prior_entries(time_from: datetime, dictionaries: list[dict], keys: list) -> list[dict]:
+def trim_prior_entries(
+    time_from: datetime, dictionaries: list[dict], keys: list
+) -> list[dict]:
     """Clears dictionaries from a list before the timestamp provided.
 
     Args:
         time_from (datetime): The time from which dictionaries are included.
-        dictionaries (list[dict]): A list of dictionaries with timestamps.
+        dictionaries (list[dict]): A list of dictionaries with timestamps, sorted by
+            timestamp in descending order.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:
@@ -139,12 +147,15 @@ def trim_prior_entries(time_from: datetime, dictionaries: list[dict], keys: list
     return trimmed_dictionaries
 
 
-def trim_leading_entries(time_until: datetime, dictionaries: list[dict], keys: list) -> list[dict]:
+def trim_leading_entries(
+    time_until: datetime, dictionaries: list[dict], keys: list
+) -> list[dict]:
     """Clears dictionaries from a list after the timestamp provided.
 
     Args:
         time_until (datetime): The time until which dictionaries are included.
-        dictionaries (list[dict]): A list of dictionaries with timestamps.
+        dictionaries (list[dict]): A list of dictionaries with timestamps, sorted by
+            timestamp in descending order.
         keys (list): A list of keys in descending order to find timestamps.
 
     Returns:

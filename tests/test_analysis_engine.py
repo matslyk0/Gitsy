@@ -1,82 +1,156 @@
-import json
 import asyncio
-import logging
 import backend.analysis_engine as analysis_engine
 
-from zoneinfo import ZoneInfo
-from datetime import datetime
-from backend.exceptions import GitHubAPIError, InsufficientDataError, CommitInfoError
+from datetime import datetime, timezone
+
+# --------------------------------- Integration Tests ---------------------------------
+
+# analysis_engine.py functions can't be unit tested as they rely on an API call.
+# Restructuring them for the sole purpose of 'true' unit tests is redundant.
+# If a test here fails, you can run test_github_client.py with pytest to see if that's
+#   where the problem lies.
+
+# <<< Smoke Tests >>>
 
 
-def test_commit_frequency() -> None:
+def test_get_commit_frequency() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    frequency = 0
+    frequency = asyncio.run(analysis_engine.get_commit_frequency(repo_url))
 
-    timestamp = datetime.strptime("2025-06-28 12:00", "%Y-%m-%d %H:%M")
-    timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
+    assert frequency is not None
 
-    try:
-        frequency = asyncio.run(analysis_engine.get_commit_frequency(repo_url, time_until=timestamp))
-    except InsufficientDataError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
+
+def test_get_code_churn() -> None: # this one takes a while
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    code_churn = asyncio.run(analysis_engine.get_code_churn(repo_url))
+
+    assert code_churn is not None
+
+
+def test_get_issues_close_time() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    issues_close_time = asyncio.run(analysis_engine.get_issues_close_time(repo_url))
+
+    assert issues_close_time is not None
+
+
+def test_get_pulls_close_time() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    pulls_close_time = asyncio.run(analysis_engine.get_pulls_close_time(repo_url))
+
+    assert pulls_close_time is not None
+
+
+def test_get_last_updated() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    last_updated = asyncio.run(analysis_engine.get_last_updated(repo_url))
+
+    assert isinstance(last_updated, datetime)
+
+
+def test_create_report() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    report = asyncio.run(analysis_engine.create_report(repo_url))
+
+    assert report["commit_frequency"] is not None
+    assert report["code_churn"] is not None
+    assert report["issue_times"] is not None
+    assert report["pull_times"] is not None
+
+
+# <<< Time Until >>>
+
+
+def test_get_commit_frequency_until() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    time_until = datetime(2025, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
+
+    frequency = asyncio.run(
+        analysis_engine.get_commit_frequency(repo_url, time_until=time_until)
+    )
 
     assert frequency == 0.7296111111111111
 
 
-def test_code_churn() -> None:
+def test_get_code_churn_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    code_churn = {}
+    time_until = datetime(2025, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
 
-    time_from = datetime.strptime("2025-07-10 13:59", "%Y-%m-%d %H:%M")
-    time_from = time_from.replace(tzinfo=ZoneInfo("UTC"))
+    code_churn = asyncio.run(
+        analysis_engine.get_code_churn(repo_url, time_until=time_until)
+    )
 
-    time_until = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
-    time_until = time_until.replace(tzinfo=ZoneInfo("UTC"))
-
-    try:
-        code_churn = asyncio.run(analysis_engine.get_code_churn(repo_url, time_from, time_until))
-    except CommitInfoError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-    assert code_churn == {'additions': 387,
-                          'deletions': 73,
-                          'total': 460,
-                          'net': 314}
+    assert code_churn == {'additions': 89, 'deletions': 1, 'total': 90, 'net': 88}
 
 
-def test_issue_times() -> None:
+def test_get_issues_close_time_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    issue_close_time = 0
+    time_until = datetime(2025, 7, 5, 12, 0, 0, tzinfo=timezone.utc)
 
-    timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
-    timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
+    issues_close_time = asyncio.run(
+        analysis_engine.get_issues_close_time(repo_url, time_until=time_until)
+    )
 
-    try:
-        issue_close_time = asyncio.run(analysis_engine.get_issue_times(repo_url, time_until=timestamp))
-    except InsufficientDataError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
-
-    assert issue_close_time == 279.3007407407407
+    assert issues_close_time == 11.81888888888889
 
 
-def test_pull_times() -> None:
+def test_get_pulls_close_time_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    pull_close_time = 0
+    time_until = datetime(2025, 7, 5, 12, 0, 0, tzinfo=timezone.utc)
 
-    timestamp = datetime.strptime("2025-08-04 23:59", "%Y-%m-%d %H:%M")
-    timestamp = timestamp.replace(tzinfo=ZoneInfo("UTC"))
+    pulls_close_time = asyncio.run(
+        analysis_engine.get_pulls_close_time(repo_url, time_until=time_until)
+    )
 
-    try:
-        pull_close_time = asyncio.run(analysis_engine.get_pull_times(repo_url, time_until=timestamp))
-    except InsufficientDataError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something went wrong: {e}")
+    assert pulls_close_time == 0.010833333333333334
 
-    assert pull_close_time == 0.015208333333333334
+
+# <<< Time From and Until >>>
+
+
+def test_get_commit_frequency_from_until() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    time_from = datetime(2024, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
+    time_until = datetime(2025, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
+
+    frequency = asyncio.run(
+        analysis_engine.get_commit_frequency(repo_url, time_from, time_until)
+    )
+
+    assert frequency == 0.7296111111111111
+
+
+def test_get_code_churn_from_until() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    time_from = datetime(2025, 7, 10, 13, 59, 0, tzinfo=timezone.utc)
+    time_until = datetime(2025, 8, 4, 23, 59, 0, tzinfo=timezone.utc)
+
+    code_churn = asyncio.run(
+        analysis_engine.get_code_churn(repo_url, time_from, time_until)
+    )
+
+    assert code_churn == {"additions": 387, "deletions": 73, "total": 460, "net": 314}
+
+
+def test_get_issues_close_time_from_until() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    time_from = datetime(2025, 6, 5, 12, 0, 0, tzinfo=timezone.utc)
+    time_until = datetime(2025, 7, 5, 12, 0, 0, tzinfo=timezone.utc)
+
+    issues_close_time = asyncio.run(
+        analysis_engine.get_issues_close_time(repo_url, time_from, time_until)
+    )
+
+    assert issues_close_time == 11.81888888888889
+
+
+def test_get_pulls_close_time_from_until() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    time_from = datetime(2025, 6, 5, 12, 0, 0, tzinfo=timezone.utc)
+    time_until = datetime(2025, 7, 5, 12, 0, 0, tzinfo=timezone.utc)
+
+    pulls_close_time = asyncio.run(
+        analysis_engine.get_pulls_close_time(repo_url, time_from, time_until)
+    )
+
+    assert pulls_close_time == 0.010833333333333334

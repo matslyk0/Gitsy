@@ -1,6 +1,9 @@
 services:
 
   backend:
+    build: backend
+    ports:
+      - "8000:8000"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -10,17 +13,9 @@ services:
     depends_on:
       database:
         condition: service_healthy
-
-
-  pgadmin:
-    image: dpage/pgadmin4
-    ports:
-      - "5050:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    command: uvicorn --factory backend.main:create_app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - pgadmin-data:/var/lib/pgadmin
+      - ./backend:/app/backend
 
 
   database:
@@ -40,6 +35,27 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
 
+  redis-db:
+   image: redis:latest
+   ports:
+     - "6379:6379"
+   volumes:
+     - redis-data:/var/lib/redis/data
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+
 volumes:
+  backend:
   postgres-data:
+  redis-data:
   pgadmin-data:
