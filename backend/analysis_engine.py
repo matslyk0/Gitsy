@@ -1,3 +1,4 @@
+import asyncio
 import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
@@ -198,3 +199,22 @@ async def get_last_updated(repo_url: str) -> datetime:
     latest_commit = commits[0]
     latest_timestamp = latest_commit["commit"]["author"]["date"]
     return latest_timestamp
+
+
+async def create_report(repo_url: str) -> dict:
+    """Calls all analysis functions and formats results into a report in a dict."""
+    report_unformatted = await asyncio.gather(
+        get_commit_frequency(repo_url),
+        get_code_churn(repo_url),
+        get_issues_close_time(repo_url),
+        get_pulls_close_time(repo_url)
+    )
+
+    report_formatted = {
+        "commit_frequency": round(report_unformatted[0], 2),
+        "code_churn": report_unformatted[1],
+        "issue_times": round(report_unformatted[2], 2),
+        "pull_times": round(report_unformatted[3], 2)
+    }
+
+    return report_formatted
