@@ -11,8 +11,10 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.get("/create-report/{repo_url:path}", response_model=schemas.ReportOut)
-async def create_report(repo_url: str, db: db_dependency):
+@router.get("/create-report/generate", response_model=schemas.ReportOut)
+async def create_report(
+        repo_url: str, redis_host: str, redis_ttl: int, db: db_dependency
+):
     report_id = crud.get_report_id(repo_url, db)
     db_has_report = report_id is not None
 
@@ -21,7 +23,7 @@ async def create_report(repo_url: str, db: db_dependency):
 
         db_report = crud.read_db_report(report_id, db)
 
-        r = redis.Redis(host="redis-db", port=6379, decode_responses=True)
+        r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
         redis_report_id = f"reports:{db_report.report_id}"
         redis_has_report = await r.exists(redis_report_id)
 
@@ -30,12 +32,12 @@ async def create_report(repo_url: str, db: db_dependency):
             redis_last_timestamp = redis_report["last_updated"]
 
             if redis_last_timestamp > repo_last_timestamp:
-                await r.expire(redis_report_id, 3600)
+                await r.expire(redis_report_id, redis_ttl)
                 return redis_report
 
             # edge case of repository updating before redis report expires
             await crud.update_db_report(repo_url, db_report, db)
-            await crud.update_redis_report(redis_report_id, db_report, r)
+            await crud.update_redis_report(redis_report_id, db_report, r, redis_ttl)
             return redis_report
 
         db_last_timestamp = (
@@ -44,12 +46,12 @@ async def create_report(repo_url: str, db: db_dependency):
             .scalar()
         )
         if db_last_timestamp > repo_last_timestamp:
-            await crud.create_redis_report(db_report, r)
+            await crud.create_redis_report(db_report, r, redis_ttl)
             await r.close()
             return db_report
 
         await crud.update_db_report(repo_url, db_report, db)
-        await crud.create_redis_report(db_report, r)
+        await crud.create_redis_report(db_report, r, redis_ttl)
         await r.close()
 
         return db_report
@@ -57,8 +59,8 @@ async def create_report(repo_url: str, db: db_dependency):
         report_id = await crud.create_db_report(repo_url, db)
         db_report = crud.read_db_report(report_id, db)
 
-        r = redis.Redis(host="redis-db", port=6379, decode_responses=True)
-        await crud.create_redis_report(db_report, r)
+        r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
+        await crud.create_redis_report(db_report, r, redis_ttl)
         await r.close()
 
         return db_report
