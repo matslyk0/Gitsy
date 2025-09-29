@@ -16,3 +16,5 @@ __pycache__/
 .env
 # temporary storage for legacy code
 legacy.py
+# node modules
+node_modules/
