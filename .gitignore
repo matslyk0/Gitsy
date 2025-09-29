@@ -8,6 +8,7 @@
 /dataSources.local.xml
 # IDE configuration
 .idea/
+.vscode/
 # Python virtual environment
 venv/
 # pycache
