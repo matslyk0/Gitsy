@@ -1,8 +1,10 @@
+import json
 import redis.asyncio as redis
 import backend.models as models
 import backend.schemas as schemas
 import backend.crud as crud
 import backend.analysis_engine as analysis_engine
+import backend.analysis_helpers as analysis_helpers
 
 from backend.database import db_dependency
 from fastapi import APIRouter
@@ -13,7 +15,10 @@ router = APIRouter()
 
 @router.get("/create-report/generate", response_model=schemas.ReportOut)
 async def create_report(
-        repo_url: str, redis_host: str, redis_ttl: int, db: db_dependency
+    db: db_dependency,
+    repo_url: str,
+    redis_host: str = "redis-db",
+    redis_ttl: int = 3600,
 ):
     report_id = crud.get_report_id(repo_url, db)
     db_has_report = report_id is not None
@@ -28,8 +33,12 @@ async def create_report(
         redis_has_report = await r.exists(redis_report_id)
 
         if redis_has_report:
-            redis_report = r.hgetall(redis_report_id)
-            redis_last_timestamp = redis_report["last_updated"]
+            redis_report = await r.hgetall(redis_report_id)
+            redis_report["code_churn"] = json.loads(redis_report["code_churn"])
+            redis_last_timestamp_raw = redis_report["last_updated"]
+            redis_last_timestamp = analysis_helpers.parse_timestamp(
+                redis_last_timestamp_raw
+            )
 
             if redis_last_timestamp > repo_last_timestamp:
                 await r.expire(redis_report_id, redis_ttl)
