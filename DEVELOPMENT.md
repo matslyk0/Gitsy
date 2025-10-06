@@ -1,51 +1,31 @@
-# Gitsy Development Guidelines
-
-This document outlines the development standards and practices for the Gitsy project.
-
 ### Branching Strategy
 
-Work must be done on feature branches. `main` is considered protected and changes must be merged via a pull request.
-
-Follow this convention for naming branches:
-
-`feature/<short-description>`
-`fix/<short-description>`
-`docs/<short-description>`
-
-Example:
-
-`feature/add-redis-caching`
+Work must be done on feature branches named `{feature, fix, docs}/<short-description>`. `main` is considered protected and changes must be merged via a pull request, with exception to minor doc changes.
 
 ### Commit Messages
 
-Follow this convention for commit messages:
-
-`feature: short-description`
-`fix: short-description`
-`docs: short-description`
-
-Example:
-
-`fix: correct calculation for average pull request close time`
+Follow this convention for commit messages `{feature, fix, docs}: <short-description>`. A commit description is encouraged if the commit title is not self-explanatory.
 
 ### Pull Requests
 
-Name the pull request same as or close to the name of the branch.
-
-Feature branches must be merged into `main` with a pull request.
-- The title should describe the changes.
-- Use `.github/PULL_REQUEST_TEMPLATE.md` to provide a summary of the changes and outline how to test them.
-- Check for code quality, adherence to standards, and ensure all tests pass.
+- Rename pull requests close to whatever the generated title is.
+- `.github/PULL_REQUEST_TEMPLATE.md` will provide a template for you to fill in.
+- Remember to attach issues, assignees, labels and the Kanban board `Core`.
 
 ### Coding Standards
 - Python code will be formatted with `black` and linted with `flake8`. 
-- JavaScript/React code will be formatted using `prettier`.
+- JavaScript/React code will be formatted using `prettier` and linted with `eslint`.
 - The CI pipeline will check for this automatically when it is implemented.
 
 ### Environment Variables
-API keys and environment-specific configurations must be stored in a `.env` file and should never be committed to the repository. Consult the `.env.example` file in the `backend` directory to show the required variables.
+API keys and environment-specific configurations must be stored in a `.env` file and should never be committed to the repository. Consult the `.env.example` file in the root directory to show the required variables. For the large majority of testing, you will need to generate your own GitHub personal access token (classic, not fine-grained) which has a rate limit of 5000 per hour. The non-token rate limit for the GitHub API is 60 per hour, which will gas out for any normal sized repository. 
+
+To create your own token, follow these steps:
+- On GitHub, go to `Profile` -> `Settings` -> `Developer settings`,
+- Click the drop-down on `Personal access tokens`,
+- Click `Tokens (classic)`,
+- Click the drop-down on `Generate new token` and select `Generate new token (classic)`,
+- Follow the steps then copy the token into your `.env` file as shown in `.env.example`.
 
 ### Testing
-All new backend features should be accompanied by unit tests. If unit tests are not applicable, please instead provide steps to recreate how you tested. 
-
-Tests are run automatically via GitHub Actions on every push and pull request to the `main` branch (WIP).
+All new backend features should be accompanied by unit tests. If unit tests are not applicable, please instead provide steps to recreate how you tested. Tests will later be run automatically via GitHub Actions on every push and pull request to `main`.
