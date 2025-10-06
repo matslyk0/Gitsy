@@ -1,11 +1,20 @@
+import { Link } from "react-router-dom";
 import styles from "./MainButtons.module.css";
 
 function GetStartedButton() {
-  return <button className={styles.getStartedButton}>Get Started</button>;
+  return (
+    <Link to={"/get-started"} className={styles.getStartedButton}>
+      Get Started
+    </Link>
+  );
 }
 
 function CreateReportButton() {
-  return <button className={styles.createReportButton}>Create Report</button>;
+  return (
+    <Link to={"/create-report"} className={styles.createReportButton}>
+      Create Report
+    </Link>
+  );
 }
 
 export default function MainButtons() {

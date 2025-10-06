@@ -3,8 +3,8 @@
   text-align: center;
 }
 .welcome h1 {
+  color: white;
   font:
     3em Helvetica,
     sans-serif;
-  color: white;
 }
