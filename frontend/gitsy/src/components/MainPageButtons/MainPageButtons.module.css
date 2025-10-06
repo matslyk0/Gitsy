@@ -1,11 +1,11 @@
-.mainButtons {
+.mainPageButtons {
   align-items: center;
   border: 0px solid white;
   display: flex;
   height: 100px;
   justify-content: center;
 }
-.getStartedButton {
+.getStartedPageButton {
   align-items: center;
   background-color: rgb(0, 255, 0);
   border: 2px solid rgb(0, 255, 0);
@@ -24,11 +24,11 @@
   text-decoration: none;
   width: 50%;
 }
-.getStartedButton:hover {
+.getStartedPageButton:hover {
   border: 2px solid white;
 }
 
-.createReportButton {
+.createReportPageButton {
   align-items: center;
   background-color: rgb(0, 145, 255);
   border: 2px solid rgb(0, 145, 255);
@@ -47,6 +47,6 @@
   text-decoration: none;
   width: 50%;
 }
-.createReportButton:hover {
+.createReportPageButton:hover {
   border: 2px solid white;
 }
