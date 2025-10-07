@@ -16,17 +16,17 @@ def test_create_report_empty_db(get_test_client, get_test_db):
     params = {"repo_url": repo_url, "redis_host": "127.0.0.1", "redis_ttl": 10}
     test_client.get(f"/create-report/generate", params=params)
 
-    report_id = crud.get_report_id(repo_url, db)
+    report_id = crud.get_postgres_report_id(repo_url, db)
     assert report_id == 1
 
     async def test_redis(): # workaround to solve async redis mixing with sync pytest
         r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
         try:
-            redis_report = await r.hgetall("reports:1")
+            redis_report = await r.hgetall("matslyk0:Gitsy")
             assert redis_report != {}
 
             time.sleep(params["redis_ttl"])
-            redis_report = await r.hgetall("reports:1")
+            redis_report = await r.hgetall("matslyk0:Gitsy")
             assert redis_report == {}
         finally:
             await r.close()
@@ -47,11 +47,11 @@ def test_create_report_populated_db(get_test_client):
     async def test_redis(): # workaround to solve async redis mixing with sync pytest
         r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
         try:
-            redis_report = await r.hgetall("reports:1")
+            redis_report = await r.hgetall("matslyk0:Gitsy")
             assert redis_report != {}
 
             time.sleep(params["redis_ttl"])
-            redis_report = await r.hgetall("reports:1")
+            redis_report = await r.hgetall("matslyk0:Gitsy")
             assert redis_report == {}
         finally:
             await r.close()

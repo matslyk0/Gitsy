@@ -1,13 +1,14 @@
-import backend.analysis_engine as analysis_engine
-import backend.github_client as github_client
-import backend.models as models
-import redis.asyncio as redis
 import json
+import redis.asyncio as redis
+import backend.models as models
+import backend.github_client as github_client
+import backend.analysis_engine as analysis_engine
+import backend.analysis_helpers as analysis_helpers
 
 from sqlalchemy.orm import Session
 
 
-async def create_db_report(repo_url: str, db: Session) -> int:
+async def create_postgres_report(repo_url: str, db: Session) -> int:
     """Adds the repository to postgres, creates a report and stores it postgres, then
         returns the report id.
 
@@ -42,7 +43,7 @@ async def create_db_report(repo_url: str, db: Session) -> int:
     return report.report_id
 
 
-async def update_db_report(
+async def update_postgres_report(
     repo_url: str, db_report: models.Reports, db: Session
 ) -> None:
     """Updates the report in the database."""
@@ -57,15 +58,16 @@ async def update_db_report(
 
 
 async def create_redis_report(
-        db_report: models.Reports, r: redis.Redis, ttl: int
-) -> str:
-    redis_report_id = f"reports:{db_report.report_id}"
+        db_report: models.Reports, redis_report_id: str, r: redis.Redis, ttl: int
+) -> None:
     serialised_code_churn = json.dumps(db_report.code_churn)
     iso_created_at = db_report.created_at.isoformat()
     iso_last_updated = db_report.last_updated.isoformat()
+
     await r.hset(
         redis_report_id,
         mapping={
+            "report_id": db_report.report_id,
             "repo_id": db_report.repo_id,
             "commit_frequency": db_report.commit_frequency,
             "code_churn": serialised_code_churn,
@@ -75,8 +77,8 @@ async def create_redis_report(
             "last_updated": iso_last_updated
         },
     )
+
     await r.expire(redis_report_id, ttl)
-    return redis_report_id
 
 
 async def update_redis_report(
@@ -95,7 +97,7 @@ async def update_redis_report(
     await r.expire(redis_report_id, ttl)
 
 
-def get_report_id(repo_url: str, db: Session) -> int | None:
+def get_postgres_report_id(repo_url: str, db: Session) -> int | None:
     owner, repo_name = github_client.get_owner_and_reponame(repo_url)
 
     repo_id = (
@@ -118,12 +120,29 @@ def get_report_id(repo_url: str, db: Session) -> int | None:
     return report_id
 
 
-def read_db_report(report_id: int, db: Session) -> models.Reports | None:
+def get_postgres_report(postgres_report_id: int, db: Session) -> models.Reports | None:
     db_report = (
         db.query(models.Reports)
         .filter(
-            models.Reports.report_id == report_id
+            models.Reports.report_id == postgres_report_id
         ).one()
     )
 
     return db_report
+
+
+def get_redis_report_id(repo_url) -> str:
+    owner, repo_name = github_client.get_owner_and_reponame(repo_url)
+    return f"{owner}:{repo_name}"
+
+
+async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict:
+    redis_report = await r.hgetall(redis_report_id)
+    redis_report["code_churn"] = json.loads(redis_report["code_churn"])
+    redis_report["created_at"] = analysis_helpers.parse_timestamp(
+        redis_report["created_at"]
+    )
+    redis_report["last_updated"] = analysis_helpers.parse_timestamp(
+        redis_report["last_updated"]
+    )
+    return redis_report
