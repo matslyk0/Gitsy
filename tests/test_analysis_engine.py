@@ -54,8 +54,8 @@ def test_create_report() -> None:
 
     assert report["commit_frequency"] is not None
     assert report["code_churn"] is not None
-    assert report["issue_times"] is not None
-    assert report["pull_times"] is not None
+    assert report["issues_close_time"] is not None
+    assert report["pulls_close_time"] is not None
 
 
 # <<< Time Until >>>

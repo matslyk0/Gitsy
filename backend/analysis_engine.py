@@ -213,8 +213,8 @@ async def create_report(repo_url: str) -> dict:
     report_formatted = {
         "commit_frequency": round(report_unformatted[0], 2),
         "code_churn": report_unformatted[1],
-        "issue_times": round(report_unformatted[2], 2),
-        "pull_times": round(report_unformatted[3], 2)
+        "issues_close_time": round(report_unformatted[2], 2),
+        "pulls_close_time": round(report_unformatted[3], 2)
     }
 
     return report_formatted

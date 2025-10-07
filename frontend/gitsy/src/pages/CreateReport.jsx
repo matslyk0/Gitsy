@@ -39,8 +39,8 @@ export default function CreateReport() {
               <li>Net: {report?.code_churn?.net}</li>
             </ul>
           </li>
-          <li>Issues Close Time (hrs): {report.issue_times}</li>
-          <li>Pulls Close Time (hrs): {report.pull_times}</li>
+          <li>Issues Close Time (hrs): {report.issues_close_times}</li>
+          <li>Pulls Close Time (hrs): {report.pulls_close_times}</li>
         </ul>
       </main>
       <Footer />
