@@ -43,8 +43,8 @@ def test_update_db_report(get_test_db) -> None:
     report = models.Reports(
         commit_frequency=0,
         code_churn={},
-        issue_times=0,
-        pull_times=0
+        issues_close_time=0,
+        pulls_close_time=0
     )
     db.add(report)
     db.commit()
@@ -53,8 +53,8 @@ def test_update_db_report(get_test_db) -> None:
     asyncio.run(crud.update_db_report(repo_url, report, db))
     assert report.commit_frequency != 0
     assert report.code_churn != {}
-    assert report.issue_times != 0
-    assert report.pull_times != 0
+    assert report.issues_close_time != 0
+    assert report.pulls_close_time != 0
 
 
 def test_create_redis_report() -> None:
@@ -64,8 +64,8 @@ def test_create_redis_report() -> None:
             repo_id=999,
             commit_frequency=4.1111,
             code_churn={'additions': 89, 'deletions': 1, 'total': 90, 'net': 88},
-            issue_times=5.11111,
-            pull_times=6.1111111111,
+            issues_close_time=5.11111,
+            pulls_close_time=6.1111111111,
             created_at=datetime.now(timezone.utc),
             last_updated=datetime.now(timezone.utc)
         )
@@ -79,8 +79,8 @@ def test_create_redis_report() -> None:
             assert int(redis_report["repo_id"]) == db_report.repo_id
             assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
             assert json.loads(redis_report["code_churn"]) == db_report.code_churn
-            assert float(redis_report["issue_times"]) == db_report.issue_times
-            assert float(redis_report["pull_times"]) == db_report.pull_times
+            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
+            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
             assert redis_report["created_at"] == db_report.created_at.isoformat()
             assert redis_report["last_updated"] == db_report.last_updated.isoformat()
             time.sleep(10)
@@ -99,8 +99,8 @@ def test_update_redis_report() -> None:
             repo_id=999,
             commit_frequency=4.1111,
             code_churn={'additions': 89, 'deletions': 1, 'total': 90, 'net': 88},
-            issue_times=5.11111,
-            pull_times=6.1111111111,
+            issues_close_time=5.11111,
+            pulls_close_time=6.1111111111,
             created_at=datetime.now(timezone.utc),
             last_updated=datetime.now(timezone.utc)
         )
@@ -110,8 +110,8 @@ def test_update_redis_report() -> None:
 
         db_report.commit_frequency = 4.44444
         db_report.code_churn = {'additions': 10, 'deletions': 10, 'total': 20, 'net': 0}
-        db_report.issue_times = 300000
-        db_report.pull_times = 40000000
+        db_report.issues_close_time = 300000
+        db_report.pulls_close_time = 40000000
         db_report.last_updated = datetime.now(timezone.utc)
 
         await crud.update_redis_report(redis_report_id, db_report, r, ttl=10)
@@ -121,8 +121,8 @@ def test_update_redis_report() -> None:
             assert redis_report != {}
             assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
             assert json.loads(redis_report["code_churn"]) == db_report.code_churn
-            assert float(redis_report["issue_times"]) == db_report.issue_times
-            assert float(redis_report["pull_times"]) == db_report.pull_times
+            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
+            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
             assert redis_report["last_updated"] == db_report.last_updated.isoformat()
             time.sleep(15)
             redis_report = await r.hgetall(f"reports:{db_report.report_id}")

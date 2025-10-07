@@ -25,8 +25,8 @@ class Reports(Base):
 
     commit_frequency = Column(Float, index=True)
     code_churn = Column(JSONB, index=True)
-    issue_times = Column(Float, index=True)
-    pull_times = Column(Float, index=True)
+    issues_close_time = Column(Float, index=True)
+    pulls_close_time = Column(Float, index=True)
 
     created_at = Column(
         DateTime(timezone=True),

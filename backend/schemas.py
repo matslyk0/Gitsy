@@ -19,8 +19,8 @@ class Report(BaseModel):
 
     commit_frequency: float
     code_churn: Dict[str, int]
-    issue_times: float
-    pull_times: float
+    issues_close_time: float
+    pulls_close_time: float
 
     created_at: datetime
     last_updated: datetime
@@ -29,8 +29,8 @@ class Report(BaseModel):
 class ReportOut(BaseModel):
     commit_frequency: float
     code_churn: Dict[str, int]
-    issue_times: float
-    pull_times: float
+    issues_close_time: float
+    pulls_close_time: float
 
     class Config:
         # needed by Pydantic for SQLAlchemy model to JSON conversion
