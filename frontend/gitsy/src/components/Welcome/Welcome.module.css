@@ -1,5 +1,5 @@
 .welcome {
-  border: 0px solid white;
+  border: 0px solid white /* for debugging */;
   text-align: center;
 }
 .welcome h1 {
