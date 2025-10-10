@@ -1,6 +1,10 @@
 .footer {
+  border: 0px solid white; /* for debugging */
   bottom: 0;
+  left: 0;
   position: absolute;
+  right: 0;
+  text-align: center;
 }
 .footer p {
   color: white;
