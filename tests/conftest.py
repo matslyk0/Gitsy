@@ -26,8 +26,6 @@ def setup_test_db():
 
     yield engine
 
-    models.Base.metadata.drop_all(bind=engine)
-
 
 @pytest.fixture()
 def get_test_db(setup_test_db):
