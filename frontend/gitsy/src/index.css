@@ -1,3 +1,16 @@
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   background-color: rgb(24, 25, 27);
+  border: 0px solid aqua;
+  margin: 0px;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
 }
