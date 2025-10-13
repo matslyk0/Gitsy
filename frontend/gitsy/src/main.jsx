@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Home from "./pages/Home.jsx";
 import GetStarted from "./pages/GetStarted.jsx";
-import CreateReport from "./pages/CreateReport.jsx";
+import CreateReport from "./pages/CreateReport/CreateReport.jsx";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import "./index.css";
