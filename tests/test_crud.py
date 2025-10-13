@@ -9,37 +9,33 @@ from datetime import datetime, timezone
 
 # --------------------------------- Integration Tests ---------------------------------
 
-# The first 4 tests are 'interconnected' in a way, as they share the same database.
-# Ideally they wouldn't be and all tests would be isolated thanks to rollbacks etc..
-
-def test_create_postgres_report(get_test_db) -> None:
+def test_create_postgres_report(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
+    db = db_test_session
     report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
-    print(f"\nCreateDBReport: {report_id}", flush=True)
     assert isinstance(report_id, int)
 
 
-def test_get_postgres_report_id(get_test_db) -> None:
+def test_get_postgres_report_id(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
+    db = db_test_session
+    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
     report_id_from_func = crud.get_postgres_report_id(repo_url, db)
 
-    assert report_id_from_func == 1
+    assert report_id_from_func == report_id
 
 
-def test_get_postgres_report(get_test_db) -> None:
+def test_get_postgres_report(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
-    report_id = crud.get_postgres_report_id(repo_url, db)
-
+    db = db_test_session
+    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
     db_report = crud.get_postgres_report(report_id, db)
-
     assert db_report.report_id == report_id
 
 
-def test_update_postgres_report(get_test_db) -> None:
-    db = get_test_db
+def test_update_postgres_report(db_test_session) -> None:
+    # make a mock database report
+    db = db_test_session
     report = models.Reports(
         commit_frequency=0,
         code_churn={},
@@ -49,8 +45,10 @@ def test_update_postgres_report(get_test_db) -> None:
     db.add(report)
     db.commit()
     db.refresh(report)
+
     repo_url = "https://github.com/matslyk0/Gitsy"
     asyncio.run(crud.update_postgres_report(repo_url, report, db))
+
     assert report.commit_frequency != 0
     assert report.code_churn != {}
     assert report.issues_close_time != 0
