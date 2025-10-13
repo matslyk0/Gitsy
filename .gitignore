@@ -7,7 +7,7 @@
 /dataSources/
 /dataSources.local.xml
 # Python virtual environment
-venv/
+backend/venv/
 # pycache
 __pycache__/
 # environment variables for docker-compose
