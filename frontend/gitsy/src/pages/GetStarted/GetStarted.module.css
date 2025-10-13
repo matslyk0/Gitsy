@@ -1,6 +1,6 @@
 .introduction {
   align-items: center;
-  border: 1px solid white; /* for debugging */
+  border: 0px solid white; /* for debugging */
   display: flex;
   flex-direction: column;
   justify-content: center;

@@ -49,7 +49,7 @@ export default function GetStarted() {
     alignItems: "center",
     flex: "1",
     flexDirection: "column",
-    border: "1px solid white" /* for debugging */,
+    border: "0px solid white" /* for debugging */,
   };
 
   return (
