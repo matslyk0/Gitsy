@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 
 
 @pytest.fixture(scope="session")
-def setup_test_db():
+def create_test_engine():
     # loaddot_env unnecessary - the environment variables are loaded by docker compose
     DB_USER = os.getenv("POSTGRES_USER", "fallback_user")
     DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
@@ -28,23 +28,30 @@ def setup_test_db():
 
 
 @pytest.fixture()
-def get_test_db(setup_test_db):
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=setup_test_db)
-    db = SessionLocal()
+def db_test_session(create_test_engine):
+    engine = create_test_engine
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
+        transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture()
-def get_test_client(get_test_db):
-    # .dependency_overrides can't accept a fixture as an argument, hence the workaround
-    def get_test_db_override():
-        yield get_test_db
+def get_test_client(db_test_session):
+    # .dependency_overrides needs a function as an argument - can't take a fixture
+    def override_get_db():
+        yield db_test_session
 
     app = create_app()
-    app.dependency_overrides[get_db] = get_test_db_override
+    app.dependency_overrides[get_db] = override_get_db
 
     client = TestClient(app)
     yield client
