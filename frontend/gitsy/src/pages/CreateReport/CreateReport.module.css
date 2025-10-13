@@ -1,0 +1,51 @@
+.createReportHeader {
+  color: white;
+  border: 0px solid white; /* for debugging */
+  font:
+    4em Helvetica,
+    sans-serif;
+  text-align: center;
+}
+
+.createReportForm {
+  border: 0px solid white; /* for debugging */
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  margin: 3px;
+  max-height: 30%;
+  max-width: 100%;
+  padding: 0px;
+  width: 500px;
+}
+.createReportForm input {
+  border: 3px solid aquamarine;
+  border-radius: 15px;
+  flex: 0.8;
+  margin-right: 2px;
+  font:
+    1.25em Helvetica,
+    sans-serif;
+}
+.createReportForm input:focus {
+  border: 3px solid aqua;
+  outline: none;
+}
+.createReportForm button {
+  border: 3px solid aquamarine;
+  border-radius: 15px;
+  flex: 0.2;
+  margin-left: 2px;
+}
+
+.reportDisplay {
+  border: 4px solid aquamarine;
+  border-radius: 30px;
+  color: white;
+  font:
+    2em Helvetica,
+    sans-serif;
+  margin-top: 30px;
+  width: 600px;
+  padding: 20px;
+}
