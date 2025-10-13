@@ -1,0 +1,7 @@
+.mainPageButtons {
+  align-items: center;
+  border: 0px solid white /* for debugging*/;
+  display: flex;
+  height: 100px;
+  justify-content: center;
+}
