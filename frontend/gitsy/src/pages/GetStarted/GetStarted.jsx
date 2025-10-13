@@ -47,8 +47,9 @@ export default function GetStarted() {
     justifyContent: "center",
     display: "flex",
     alignItems: "center",
+    flex: "1",
     flexDirection: "column",
-    border: "0px solid white" /* for debugging */,
+    border: "1px solid white" /* for debugging */,
   };
 
   return (
