@@ -1,6 +1,6 @@
-import Banner from "../components/Banner/Banner.jsx";
-import Footer from "../components/Footer/Footer.jsx";
-import Introduction from "../components/Introduction/Introduction.jsx";
+import Banner from "../../components/Banner/Banner.jsx";
+import Footer from "../../components/Footer/Footer.jsx";
+import Introduction from "../../components/Introduction/Introduction.jsx";
 
 export default function GetStarted() {
   const styles = {
