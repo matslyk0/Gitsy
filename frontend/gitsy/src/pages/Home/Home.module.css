@@ -5,3 +5,14 @@
   height: 100px;
   justify-content: center;
 }
+
+.welcome {
+  border: 0px solid white /* for debugging */;
+  text-align: center;
+}
+.welcome h1 {
+  color: white;
+  font:
+    3em Helvetica,
+    sans-serif;
+}

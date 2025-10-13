@@ -1,5 +1,4 @@
 import Banner from "../../components/Banner/Banner.jsx";
-import Welcome from "../../components/Welcome/Welcome.jsx";
 import GetStartedButton from "../../components/GetStartedButton/GetStartedButton.jsx";
 import CreateReportButton from "../../components/CreateReportButton/CreateReportButton.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
@@ -11,7 +10,9 @@ export default function Home() {
     <>
       <Banner />
       <main>
-        <Welcome />
+        <div className={styles.welcome}>
+          <h1>Welcome to Gitsy!</h1>
+        </div>
         <div className={styles.mainPageButtons}>
           <GetStartedButton />
           <CreateReportButton />
