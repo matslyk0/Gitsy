@@ -1,0 +1,34 @@
+.introduction {
+  align-items: center;
+  border: 0px solid white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 600px;
+}
+.introduction h1 {
+  color: aquamarine;
+  text-align: center;
+  font: 2em Verdana;
+}
+.introduction p {
+  color: white;
+  font:
+    1.25em Helvetica,
+    sans-serif;
+}
+.introduction h2 {
+  color: white;
+  font:
+    1.5em Helvetica,
+    sans-serif;
+}
+
+.buttonDiv {
+  align-items: center;
+  border: 0px solid white /* for debugging*/;
+  display: flex;
+  height: 60px;
+  width: 400px; /* button width is 50% of its container */
+  justify-content: center;
+}
