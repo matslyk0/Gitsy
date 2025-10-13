@@ -1,7 +1,9 @@
-import styles from "./Introduction.module.css";
-import CreateReportPageButton from "../MainPageButtons/CreateReportPageButton";
+import Banner from "../../components/Banner/Banner.jsx";
+import Footer from "../../components/Footer/Footer.jsx";
+import CreateReportPageButton from "../../components/CreateReportButton/CreateReportButton.jsx";
+import styles from "./GetStarted.module.css";
 
-export default function Introduction() {
+function Introduction() {
   return (
     <>
       <div className={styles.introduction}>
@@ -36,10 +38,28 @@ export default function Introduction() {
           </p>
         </section>
       </div>
+    </>
+  );
+}
 
-      <div className={styles.buttonDiv}>
+export default function GetStarted() {
+  const mainStyles = {
+    justifyContent: "center",
+    display: "flex",
+    alignItems: "center",
+    flex: "1",
+    flexDirection: "column",
+    border: "0px solid white" /* for debugging */,
+  };
+
+  return (
+    <>
+      <Banner />
+      <main style={mainStyles}>
+        <Introduction />
         <CreateReportPageButton />
-      </div>
+      </main>
+      <Footer />
     </>
   );
 }

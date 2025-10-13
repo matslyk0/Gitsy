@@ -1,6 +1,6 @@
 .introduction {
   align-items: center;
-  border: 0px solid white;
+  border: 0px solid white; /* for debugging */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -22,13 +22,4 @@
   font:
     1.5em Helvetica,
     sans-serif;
-}
-
-.buttonDiv {
-  align-items: center;
-  border: 0px solid white /* for debugging*/;
-  display: flex;
-  height: 60px;
-  width: 400px; /* button width is 50% of its container */
-  justify-content: center;
 }

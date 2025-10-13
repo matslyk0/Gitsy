@@ -1,5 +1,5 @@
-import Banner from "../components/Banner/Banner.jsx";
-import Footer from "../components/Footer/Footer.jsx";
+import Banner from "../../components/Banner/Banner.jsx";
+import Footer from "../../components/Footer/Footer.jsx";
 
 export default function Login() {
   return (

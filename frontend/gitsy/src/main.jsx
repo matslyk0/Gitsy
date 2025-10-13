@@ -2,11 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import Home from "./pages/Home.jsx";
-import GetStarted from "./pages/GetStarted.jsx";
+import Home from "./pages/Home/Home.jsx";
+import GetStarted from "./pages/GetStarted/GetStarted.jsx";
 import CreateReport from "./pages/CreateReport/CreateReport.jsx";
-import Login from "./pages/Login.jsx";
-import SignUp from "./pages/SignUp.jsx";
+import Login from "./pages/Login/Login.jsx";
+import SignUp from "./pages/SignUp/SignUp.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
