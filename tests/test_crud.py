@@ -71,20 +71,20 @@ def test_create_redis_report() -> None:
         r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=10)
-        redis_report = await crud.get_redis_report("admin:test", r)
+        redis_report = await crud.get_redis_report(redis_report_id, r)
 
         try:
             assert redis_report != {}
-            assert int(redis_report["report_id"]) == db_report.report_id
-            assert int(redis_report["repo_id"]) == db_report.repo_id
-            assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
+            assert redis_report["report_id"] == db_report.report_id
+            assert redis_report["repo_id"] == db_report.repo_id
+            assert redis_report["commit_frequency"] == db_report.commit_frequency
             assert redis_report["code_churn"] == db_report.code_churn
-            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
-            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
+            assert redis_report["issues_close_time"] == db_report.issues_close_time
+            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
             assert redis_report["created_at"] == db_report.created_at
             assert redis_report["last_updated"] == db_report.last_updated
             time.sleep(10)
-            redis_report = await r.hgetall(f"reports:{db_report.report_id}")
+            redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
             await r.close()
@@ -116,17 +116,17 @@ def test_update_redis_report() -> None:
         db_report.last_updated = datetime.now(timezone.utc)
 
         await crud.update_redis_report(redis_report_id, db_report, r, ttl=10)
-        redis_report = await r.hgetall(redis_report_id)
+        redis_report = await crud.get_redis_report(redis_report_id, r)
 
         try:
             assert redis_report != {}
-            assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
-            assert json.loads(redis_report["code_churn"]) == db_report.code_churn
-            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
-            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
-            assert redis_report["last_updated"] == db_report.last_updated.isoformat()
+            assert redis_report["commit_frequency"] == db_report.commit_frequency
+            assert redis_report["code_churn"] == db_report.code_churn
+            assert redis_report["issues_close_time"] == db_report.issues_close_time
+            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
+            assert redis_report["last_updated"] == db_report.last_updated
             time.sleep(15)
-            redis_report = await r.hgetall(f"reports:{db_report.report_id}")
+            redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
             await r.close()
