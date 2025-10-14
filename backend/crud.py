@@ -136,13 +136,24 @@ def get_redis_report_id(repo_url) -> str:
     return f"{owner}:{repo_name}"
 
 
-async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict:
+async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
+    """Returns the redis report with correct data types"""
     redis_report = await r.hgetall(redis_report_id)
+
+    if redis_report == {}:
+        return redis_report
+
+    redis_report["report_id"] = int(redis_report["report_id"])
+    redis_report["repo_id"] = int(redis_report["repo_id"])
+    redis_report["commit_frequency"] = float(redis_report["commit_frequency"])
     redis_report["code_churn"] = json.loads(redis_report["code_churn"])
+    redis_report["issues_close_time"] = float(redis_report["issues_close_time"])
+    redis_report["pulls_close_time"] = float(redis_report["pulls_close_time"])
     redis_report["created_at"] = analysis_helpers.parse_timestamp(
         redis_report["created_at"]
     )
     redis_report["last_updated"] = analysis_helpers.parse_timestamp(
         redis_report["last_updated"]
     )
+
     return redis_report

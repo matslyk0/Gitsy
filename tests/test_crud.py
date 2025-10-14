@@ -9,37 +9,33 @@ from datetime import datetime, timezone
 
 # --------------------------------- Integration Tests ---------------------------------
 
-# The first 4 tests are 'interconnected' in a way, as they share the same database.
-# Ideally they wouldn't be and all tests would be isolated thanks to rollbacks etc..
-
-def test_create_postgres_report(get_test_db) -> None:
+def test_create_postgres_report(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
+    db = db_test_session
     report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
-    print(f"\nCreateDBReport: {report_id}", flush=True)
     assert isinstance(report_id, int)
 
 
-def test_get_postgres_report_id(get_test_db) -> None:
+def test_get_postgres_report_id(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
+    db = db_test_session
+    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
     report_id_from_func = crud.get_postgres_report_id(repo_url, db)
 
-    assert report_id_from_func == 1
+    assert report_id_from_func == report_id
 
 
-def test_get_postgres_report(get_test_db) -> None:
+def test_get_postgres_report(db_test_session) -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = get_test_db
-    report_id = crud.get_postgres_report_id(repo_url, db)
-
+    db = db_test_session
+    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
     db_report = crud.get_postgres_report(report_id, db)
-
     assert db_report.report_id == report_id
 
 
-def test_update_postgres_report(get_test_db) -> None:
-    db = get_test_db
+def test_update_postgres_report(db_test_session) -> None:
+    # make a mock database report
+    db = db_test_session
     report = models.Reports(
         commit_frequency=0,
         code_churn={},
@@ -49,8 +45,10 @@ def test_update_postgres_report(get_test_db) -> None:
     db.add(report)
     db.commit()
     db.refresh(report)
+
     repo_url = "https://github.com/matslyk0/Gitsy"
     asyncio.run(crud.update_postgres_report(repo_url, report, db))
+
     assert report.commit_frequency != 0
     assert report.code_churn != {}
     assert report.issues_close_time != 0
@@ -73,20 +71,20 @@ def test_create_redis_report() -> None:
         r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=10)
-        redis_report = await crud.get_redis_report("admin:test", r)
+        redis_report = await crud.get_redis_report(redis_report_id, r)
 
         try:
             assert redis_report != {}
-            assert int(redis_report["report_id"]) == db_report.report_id
-            assert int(redis_report["repo_id"]) == db_report.repo_id
-            assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
+            assert redis_report["report_id"] == db_report.report_id
+            assert redis_report["repo_id"] == db_report.repo_id
+            assert redis_report["commit_frequency"] == db_report.commit_frequency
             assert redis_report["code_churn"] == db_report.code_churn
-            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
-            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
+            assert redis_report["issues_close_time"] == db_report.issues_close_time
+            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
             assert redis_report["created_at"] == db_report.created_at
             assert redis_report["last_updated"] == db_report.last_updated
             time.sleep(10)
-            redis_report = await r.hgetall(f"reports:{db_report.report_id}")
+            redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
             await r.close()
@@ -118,17 +116,17 @@ def test_update_redis_report() -> None:
         db_report.last_updated = datetime.now(timezone.utc)
 
         await crud.update_redis_report(redis_report_id, db_report, r, ttl=10)
-        redis_report = await r.hgetall(redis_report_id)
+        redis_report = await crud.get_redis_report(redis_report_id, r)
 
         try:
             assert redis_report != {}
-            assert float(redis_report["commit_frequency"]) == db_report.commit_frequency
-            assert json.loads(redis_report["code_churn"]) == db_report.code_churn
-            assert float(redis_report["issues_close_time"]) == db_report.issues_close_time
-            assert float(redis_report["pulls_close_time"]) == db_report.pulls_close_time
-            assert redis_report["last_updated"] == db_report.last_updated.isoformat()
+            assert redis_report["commit_frequency"] == db_report.commit_frequency
+            assert redis_report["code_churn"] == db_report.code_churn
+            assert redis_report["issues_close_time"] == db_report.issues_close_time
+            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
+            assert redis_report["last_updated"] == db_report.last_updated
             time.sleep(15)
-            redis_report = await r.hgetall(f"reports:{db_report.report_id}")
+            redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
             await r.close()
