@@ -34,11 +34,11 @@ services:
 
 
   redis-db:
-   image: redis:latest
-   ports:
-     - "6379:6379"
-   volumes:
-     - redis-data:/var/lib/redis/data
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/var/lib/redis/data
 
 
   pgadmin:
