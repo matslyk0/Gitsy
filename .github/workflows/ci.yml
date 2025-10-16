@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: set up containers for testing
+        run: docker compose -f docker-compose.test.yml up -d --build
+
+      - name: run tests
+        run: bash -c "cd tests && pytest . -v"
+
+      - name: tear down containers
+        run: docker compose -f docker-compose.test.yml down
