@@ -26,6 +26,12 @@ jobs:
       - name: set up containers for testing
         run: docker compose -f docker-compose.test.yml up -d --build
 
+      - name: wait for postgres container
+        run: until nc -z localhost 5432; do echo "waiting for postgres"; sleep 5; done
+
+      - name: wait for redis container
+        run: until nc -z localhost 6379; do echo "waiting for redis"; sleep 5; done
+
       - name: run tests
         run: bash -c "cd tests && pytest . -v"
 
