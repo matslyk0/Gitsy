@@ -5,9 +5,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: test_user
-      POSTGRES_PASSWORD: test_password
-      POSTGRES_DB: test_db
+      POSTGRES_TEST_USER: test_user
+      POSTGRES_TEST_PASSWORD: test_password
+      POSTGRES_TEST_DB: test_db
 
 
   redis-test-db:

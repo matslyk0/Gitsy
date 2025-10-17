@@ -12,8 +12,8 @@ from sqlalchemy import create_engine, text
 @pytest.fixture(scope="session")
 def create_test_engine():
     # loaddot_env unnecessary - the environment variables are loaded by docker compose
-    DB_USER = os.getenv("POSTGRES_USER", "fallback_user")
-    DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
+    DB_USER = os.getenv("POSTGRES_TEST_USER", "fallback_user")
+    DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "fallback_password")
     DB_NAME = os.getenv("POSTGRES_TEST_DB", "fallback_test_db")
     DATABASE_URL = (
         f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@localhost:5432/{DB_NAME}"
