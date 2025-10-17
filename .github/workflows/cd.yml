@@ -1,0 +1,46 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: create backend and frontend images
+        run: |
+          docker build -f frontend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest ./frontend 
+          docker build -f backend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest ./backend
+
+      - name: verify images
+        run: docker images
+
+      - name: set up aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: log in to AWS ECR
+        run: |
+          aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 764475167282.dkr.ecr.eu-north-1.amazonaws.com
+
+      - name: push docker images
+        run: |
+          docker push 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest
+          docker push 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
+
+      - name: deploy to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: docker compose -f docker-compose.prod.yml up -d --pull
