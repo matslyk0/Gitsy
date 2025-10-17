@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
 
       - name: install dependencies to runner
-        run: pip install -r requirements-dev.text
+        run: pip install -r backend/requirements-dev.text
 
       - name: set up containers for testing
         run: docker compose -f docker-compose.test.yml up -d --build
