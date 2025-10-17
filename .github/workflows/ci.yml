@@ -8,6 +8,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
+
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
