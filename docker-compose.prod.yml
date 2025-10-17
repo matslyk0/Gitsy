@@ -1,16 +1,12 @@
 services:
 
   frontend:
-    build:
-      context: frontend/gitsy
-      dockerfile: Dockerfile.prod
+    image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest
     ports:
       - "5173:80"
 
   backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile.prod
+    image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
     ports:
       - "8000:8000"
     environment:
