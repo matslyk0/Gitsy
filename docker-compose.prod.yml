@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DB_HOST: "database"
       POSTGRES_DB: ${POSTGRES_DB}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
     depends_on:
       database:
         condition: service_healthy
