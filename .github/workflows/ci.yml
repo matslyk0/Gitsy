@@ -27,7 +27,7 @@ jobs:
         run: docker compose -f docker-compose.test.yml up -d --build
 
       - name: run tests
-        run: docker exec -it gitsy-test-runner-1 pytest tests -v
+        run: docker exec gitsy-test-runner-1 pytest tests -v
 
       - name: tear down containers
         run: docker compose -f docker-compose.test.yml down
