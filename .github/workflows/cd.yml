@@ -14,8 +14,8 @@ jobs:
 
       - name: create backend and frontend images
         run: |
-          docker build -f frontend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest ./frontend 
-          docker build -f backend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest ./backend
+          docker build -f ./frontend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest ./frontend 
+          docker build -f ./backend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest ./backend
 
       - name: verify images
         run: docker images
