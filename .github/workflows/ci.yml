@@ -33,7 +33,7 @@ jobs:
         run: until nc -z localhost 6379; do echo "waiting for redis"; sleep 5; done
 
       - name: run tests
-        run: bash -c "cd tests && pytest . -v"
+        run: docker exec -it gitsy-test-runner-1 pytest tests -v
 
       - name: tear down containers
         run: docker compose -f docker-compose.test.yml down
