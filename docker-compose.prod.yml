@@ -3,7 +3,7 @@ services:
   frontend:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest
     ports:
-      - "5173:80"
+      - "80:80"
 
   backend:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
