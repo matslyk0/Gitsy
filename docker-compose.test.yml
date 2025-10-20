@@ -19,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       redis-test-db:
         condition: service_started
