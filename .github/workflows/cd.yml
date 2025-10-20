@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: create backend and frontend images
         run: |
@@ -36,11 +36,20 @@ jobs:
           docker push 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest
           docker push 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
 
-      - name: deploy to EC2
-        uses: appleboy/ssh-action@v0.1.6
+      - name: copy docker-compose.prod.yml into EC2
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ec2-user/"
+
+      - name: deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: docker compose -f docker-compose.prod.yml up -d --pull always
