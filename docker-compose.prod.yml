@@ -7,8 +7,6 @@ services:
 
   backend:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
-    ports:
-      - "8000:8000"
     environment:
       POSTGRES_USER: ${{ secrets.POSTGRES_PROD_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PROD_PASSWORD }}
@@ -20,8 +18,6 @@ services:
 
   database:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: ${{ secrets.POSTGRES_PROD_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PROD_PASSWORD }}
@@ -36,8 +32,6 @@ services:
 
   redis-db:
     image: redis:latest
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/var/lib/redis/data
 
