@@ -24,7 +24,7 @@ def test_create_report_empty_db(get_test_client, db_test_session):
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report["report_id"] == postgres_report_id
 
-            time.sleep(params["redis_ttl"])
+            time.sleep(params["redis_ttl"]+1)
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report == {}
         finally:
@@ -54,7 +54,7 @@ def test_redis_regenerates_report(get_test_client, db_test_session):
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report["report_id"] == postgres_report_id
 
-            time.sleep(params["redis_ttl"])
+            time.sleep(params["redis_ttl"]+1)
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report == {}
         finally:
