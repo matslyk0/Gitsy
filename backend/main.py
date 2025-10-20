@@ -10,7 +10,8 @@ from backend.routers import reports, pages
 def create_app():
     app = FastAPI()
 
-    origins = ["http://localhost:5173/"] # local frontend server
+    origins = ["http://localhost:5173/", # local frontend server
+               "http://13.60.196.156"] # prod server
 
     app.add_middleware(
         CORSMiddleware,
