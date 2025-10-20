@@ -6,17 +6,22 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gitsy_test_db
-
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis-test-db:
     image: redis:latest
-
 
   test-runner:
     build:
       context: .
       dockerfile: Dockerfile.test
     depends_on:
-      - test-database
-      - redis-test-db
+      redis-test-db:
+        condition: service_started
+      test-database:
+        condition: service_healthy
     command: tail -f /dev/null
