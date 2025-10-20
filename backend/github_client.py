@@ -7,9 +7,7 @@ from urllib.parse import urlencode
 from dotenv import load_dotenv
 from backend.exceptions import GitHubAPIError, CommitInfoError
 
-load_dotenv()
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") # loaded from docker-compose - locally for testing, GitHub secrets for CI
 
 def parse_data(data: list[dict] | dict | None) -> list[dict]:
     """Converts the data received from the GitHub API into a list[dict]

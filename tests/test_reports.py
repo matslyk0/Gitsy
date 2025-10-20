@@ -12,19 +12,19 @@ def test_create_report_empty_db(get_test_client, db_test_session):
     db = db_test_session
 
     repo_url = "https://github.com/matslyk0/Gitsy"
-    params = {"repo_url": repo_url, "redis_host": "127.0.0.1", "redis_ttl": 10}
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "redis_ttl": 10}
 
     test_client.get(f"/create-report/generate", params=params)
     postgres_report_id = crud.get_postgres_report_id(repo_url, db)
     assert postgres_report_id == 1
 
     async def test_redis(): # workaround to solve async redis mixing with sync pytest
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         try:
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report["report_id"] == postgres_report_id
 
-            time.sleep(params["redis_ttl"])
+            time.sleep(params["redis_ttl"]+1)
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report == {}
         finally:
@@ -39,7 +39,7 @@ def test_redis_regenerates_report(get_test_client, db_test_session):
     db = db_test_session
 
     repo_url = "https://github.com/matslyk0/Gitsy"
-    params = {"repo_url": repo_url, "redis_host": "127.0.0.1", "redis_ttl": 10}
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "redis_ttl": 10}
 
     test_client.get(f"/create-report/generate", params=params)
     postgres_report_id = crud.get_postgres_report_id(repo_url, db)
@@ -49,12 +49,12 @@ def test_redis_regenerates_report(get_test_client, db_test_session):
     test_client.get(f"/create-report/generate", params=params)
 
     async def test_redis(): # workaround to solve async redis mixing with sync pytest
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         try:
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report["report_id"] == postgres_report_id
 
-            time.sleep(params["redis_ttl"])
+            time.sleep(params["redis_ttl"]+1)
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report == {}
         finally:

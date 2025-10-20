@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install dependencies to runner
+        run: pip install -r backend/requirements-dev.txt
+
+      - name: set up containers for testing
+        run: docker compose -f docker-compose.test.yml up -d --build
+
+      - name: run tests
+        run: docker exec gitsy-test-runner-1 pytest tests -v
+
+      - name: tear down containers
+        run: docker compose -f docker-compose.test.yml down

@@ -68,7 +68,7 @@ def test_create_redis_report() -> None:
             last_updated=datetime.now(timezone.utc)
         )
 
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=10)
         redis_report = await crud.get_redis_report(redis_report_id, r)
@@ -83,7 +83,7 @@ def test_create_redis_report() -> None:
             assert redis_report["pulls_close_time"] == db_report.pulls_close_time
             assert redis_report["created_at"] == db_report.created_at
             assert redis_report["last_updated"] == db_report.last_updated
-            time.sleep(10)
+            time.sleep(11)
             redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
@@ -105,7 +105,7 @@ def test_update_redis_report() -> None:
             last_updated=datetime.now(timezone.utc)
         )
 
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=100)
 
@@ -125,7 +125,7 @@ def test_update_redis_report() -> None:
             assert redis_report["issues_close_time"] == db_report.issues_close_time
             assert redis_report["pulls_close_time"] == db_report.pulls_close_time
             assert redis_report["last_updated"] == db_report.last_updated
-            time.sleep(15)
+            time.sleep(11)
             redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
         finally:
