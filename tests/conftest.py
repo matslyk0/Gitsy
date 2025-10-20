@@ -1,5 +1,7 @@
 import os
 import pytest
+from dotenv import load_dotenv
+
 import backend.models as models
 
 from fastapi.testclient import TestClient
@@ -11,12 +13,13 @@ from sqlalchemy import create_engine, text
 
 @pytest.fixture(scope="session")
 def create_test_engine():
-    # loaddot_env unnecessary - the environment variables are loaded by docker compose
-    DB_USER = os.getenv("POSTGRES_TEST_USER", "fallback_user")
-    DB_PASSWORD = os.getenv("POSTGRES_TEST_PASSWORD", "fallback_password")
-    DB_NAME = os.getenv("POSTGRES_TEST_DB", "fallback_test_db")
+    # the credentials can be copied directly from docker composed because this code is not used for prod
+    DB_USER = "admin"
+    DB_PASSWORD = "password"
+    DB_NAME = "gitsy_test_db"
+    DB_HOST = "test-database"
     DATABASE_URL = (
-        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@localhost:5432/{DB_NAME}"
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
     )
 
     engine = create_engine(DATABASE_URL)

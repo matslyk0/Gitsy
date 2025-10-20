@@ -2,15 +2,21 @@ services:
 
   test-database:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_TEST_USER: test_user
-      POSTGRES_TEST_PASSWORD: test_password
-      POSTGRES_TEST_DB: test_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gitsy_test_db
 
 
   redis-test-db:
     image: redis:latest
-    ports:
-      - "6379:6379"
+
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - test-database
+      - redis-test-db
+    command: tail -f /dev/null

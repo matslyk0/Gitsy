@@ -68,7 +68,7 @@ def test_create_redis_report() -> None:
             last_updated=datetime.now(timezone.utc)
         )
 
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=10)
         redis_report = await crud.get_redis_report(redis_report_id, r)
@@ -105,7 +105,7 @@ def test_update_redis_report() -> None:
             last_updated=datetime.now(timezone.utc)
         )
 
-        r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
         redis_report_id = "admin:test"
         await crud.create_redis_report(db_report, redis_report_id, r, ttl=100)
 

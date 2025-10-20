@@ -6,11 +6,11 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-# loaddot_env unnecessary - the environment variables are loaded by docker compose
-POSTGRES_USER = os.getenv("POSTGRES_USER", "fallback_user")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "fallback_password")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "fallback_db")
-DB_HOST = os.getenv("DB_HOST", "will_break_if_used")
+# the environment variables are loaded by docker compose in the backend container
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+DB_HOST = "database" # the postgres container name - same name for prod and dev
 
 DATABASE_URL = (
     f"postgresql+psycopg2://{POSTGRES_USER}:"
