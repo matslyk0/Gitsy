@@ -59,7 +59,7 @@ jobs:
             export POSTGRES_PROD_DB=${{ secrets.POSTGRES_PROD_DB }}
             export GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
             
-            cat << EOF > .env.prod
+            cat << EOF > .env
             POSTGRES_PROD_USER=${POSTGRES_PROD_USER}
             POSTGRES_PROD_PASSWORD=${POSTGRES_PROD_PASSWORD}
             POSTGRES_PROD_DB=${POSTGRES_PROD_DB}
