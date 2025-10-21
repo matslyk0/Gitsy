@@ -66,4 +66,4 @@ jobs:
             GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
             EOF
             
-            docker compose --env-file /tmp/prod.env -f docker-compose.prod.yml up -d --pull always
+            docker compose --env-file /tmp/.env.prod -f docker-compose.prod.yml up -d --pull always
