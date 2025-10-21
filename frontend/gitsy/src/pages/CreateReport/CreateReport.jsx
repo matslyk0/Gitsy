@@ -47,10 +47,13 @@ export default function CreateReport() {
   const [report, setReport] = useState([]);
 
   async function CallAnalysisFunction() {
+    const baseUrl =
+      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
+
     const enteredUrl = document.getElementById("urlInput").value;
     document.getElementById("urlInput").value = "";
 
-    const endpointUrl = "http://localhost:8000/create-report/generate";
+    const endpointUrl = "${baseUrl}/create-report/generate";
     const params = { repo_url: enteredUrl };
 
     try {
