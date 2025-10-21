@@ -53,15 +53,14 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            bash -c '
+            set -e
             aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 764475167282.dkr.ecr.eu-north-1.amazonaws.com
             export POSTGRES_PROD_USER=${{ secrets.POSTGRES_PROD_USER }}
             export POSTGRES_PROD_PASSWORD=${{ secrets.POSTGRES_PROD_PASSWORD }}
             export POSTGRES_PROD_DB=${{ secrets.POSTGRES_PROD_DB }}
             export GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
             
-            POSTGRES_PROD_USER=$POSTGRES_PROD_USER \
-            POSTGRES_PROD_PASSWORD=$POSTGRES_PROD_PASSWORD \
-            POSTGRES_PROD_DB=$POSTGRES_PROD_DB \
-            GITHUB_TOKEN=$GITHUB_TOKEN \
             docker compose -f docker-compose.prod.yml up -d --pull always
+            `
 
