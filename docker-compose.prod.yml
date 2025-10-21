@@ -4,6 +4,9 @@ services:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest
     ports:
       - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
 
   backend:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
@@ -17,6 +20,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      redis-db:
+        condition: service_started
 
   database:
     image: postgres:16-alpine
