@@ -59,11 +59,11 @@ jobs:
             export POSTGRES_PROD_DB=${{ secrets.POSTGRES_PROD_DB }}
             export GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
             
-            cat << EOF > /tmp/.env.prod
+            cat << EOF > .env.prod
             POSTGRES_PROD_USER=${POSTGRES_PROD_USER}
             POSTGRES_PROD_PASSWORD=${POSTGRES_PROD_PASSWORD}
             POSTGRES_PROD_DB=${POSTGRES_PROD_DB}
-            GITHUB_TOKEN=${GIT_HUB_TOKEN}
+            GITHUB_TOKEN=${GITHUB_TOKEN}
             EOF
             
-            docker compose --env-file /tmp/.env.prod -f docker-compose.prod.yml up -d --pull always
+            docker compose -f docker-compose.prod.yml up -d --pull always
