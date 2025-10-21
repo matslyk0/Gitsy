@@ -58,9 +58,10 @@ jobs:
             export POSTGRES_PROD_PASSWORD=${{ secrets.POSTGRES_PROD_PASSWORD }}
             export POSTGRES_PROD_DB=${{ secrets.POSTGRES_PROD_DB }}
             export GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
+            
+            POSTGRES_PROD_USER=$POSTGRES_PROD_USER \
+            POSTGRES_PROD_PASSWORD=$POSTGRES_PROD_PASSWORD \
+            POSTGRES_PROD_DB=$POSTGRES_PROD_DB \
+            GITHUB_TOKEN=$GITHUB_TOKEN \
             docker compose -f docker-compose.prod.yml up -d --pull always
-            if [ -z "$POSTGRES_PROD_USER" ]; then
-              echo "POSTGRES_PROD_USER is empty"
-            else
-              echo "POSTGRES_PROD_USER is set"
-            fi
+
