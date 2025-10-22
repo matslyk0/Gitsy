@@ -53,7 +53,7 @@ export default function CreateReport() {
     const enteredUrl = document.getElementById("urlInput").value;
     document.getElementById("urlInput").value = "";
 
-    const endpointUrl = "${baseUrl}/create-report/generate";
+    const endpointUrl = `${baseUrl}/create-report/generate`;
     const params = { repo_url: enteredUrl };
 
     try {
