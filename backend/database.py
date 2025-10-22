@@ -10,7 +10,7 @@ from fastapi import Depends
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
-DB_HOST = "database" # the postgres container name - same name for prod and dev
+DB_HOST = os.getenv("DB_HOST")
 
 DATABASE_URL = (
     f"postgresql+psycopg2://{POSTGRES_USER}:"

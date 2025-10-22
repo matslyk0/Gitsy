@@ -10,6 +10,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gitsy_db
+      DB_HOST: database
     depends_on:
       database:
         condition: service_healthy

@@ -21,7 +21,7 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # checks if the container is the dev container
+    # checks that it's not a testing environment
     if os.getenv("DB_HOST") == "database":
         models.Base.metadata.create_all(bind=engine)
 

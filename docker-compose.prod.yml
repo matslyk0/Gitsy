@@ -16,6 +16,7 @@ services:
       POSTGRES_USER: ${POSTGRES_PROD_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PROD_PASSWORD}
       POSTGRES_DB: ${POSTGRES_PROD_DB}
+      DB_HOST: database
       GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       database:
