@@ -6,7 +6,7 @@ COPY backend/requirements-prod.txt .
 
 RUN pip install -r requirements-prod.txt
 
-COPY backend .
+COPY backend /app/backend
 
 RUN groupadd -r app && useradd -r -g app appuser
 USER appuser
