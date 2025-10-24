@@ -9,7 +9,7 @@ services:
         condition: service_started
     volumes:
       - /var/www/certbot:/var/www/certbot:ro
-      - /var/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
   backend:
     image: 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest
