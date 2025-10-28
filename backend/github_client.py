@@ -3,11 +3,18 @@ import os
 import httpx
 import logging
 
+from math import ceil
 from urllib.parse import urlencode
-from dotenv import load_dotenv
 from backend.exceptions import GitHubAPIError, CommitInfoError
 
+# uncomment for script-only testing, comment back when done
+from dotenv import load_dotenv
+import asyncio
+import json
+load_dotenv()
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") # loaded from docker-compose - locally for testing, GitHub secrets for CI
+
 
 def parse_data(data: list[dict] | dict | None) -> list[dict]:
     """Converts the data received from the GitHub API into a list[dict]
@@ -101,7 +108,16 @@ def get_owner_and_reponame(repo_url: str) -> tuple:
 
 
 def parse_url(repo_url: str, target: str = None):
-    """Parses a repository URL into the GitHub API format"""
+    """Parses a repository URL into the GitHub API format:
+        https://api.github.com/repos/{owner}/{repo}
+
+    Args:
+        repo_url (str): The URL in the format https://github.com/user/repo.
+        target (str): Additional term to specify which GitHub API endpoint to hit.
+
+    Returns:
+         str: a parsed URL ready to be used to make a call to GitHub's API.
+    """
     owner, repo_name = get_owner_and_reponame(repo_url)
     url = f"https://api.github.com/repos/{owner}/{repo_name}"
 
@@ -214,3 +230,80 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
         )
 
     return response.json()
+
+
+async def get_commit_history(repo_url: str) -> list[dict]:
+    """Creates a summary of all commit related changes made to the repository.
+
+    Args:
+        repo_url (str): The URL in the format https://github.com/user/repo
+
+    Returns:
+         list[dict]: A list of dictionaries, where each dictionary is a 250-commit wide comparison.
+    """
+    result = []
+    sha_pairs = []
+    headers = {
+        "User-Agent": "Gitsy/0.1",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+    }
+    commits = (await get_commits(repo_url))[::-1]
+
+    # handle first commit separately as it isn't captured by /compare
+    first_commit_info = await get_commit_info(repo_url, commits[0]["sha"])
+    result.append(first_commit_info)
+    # handle first slice separately because of the first commit exclusion
+    older_sha = commits[0]["sha"]
+    if len(commits) >= 250:
+        newer_sha = commits[249]["sha"]
+    else:
+        newer_sha = commits[-1]["sha"]
+    sha_pairs.append((older_sha, newer_sha))
+
+    # create the remaining 250 wide slices
+    total_slices = len(commits) // 250
+    remaining_slices = max(total_slices - 1, 0)
+    for i in range(remaining_slices):
+        index = ((i+1)*250)-1
+        older_sha = commits[index]["sha"]
+        newer_sha = commits[index+250]["sha"]
+        sha_pairs.append((older_sha, newer_sha))
+
+    # check if there are any remaining commits
+    if total_slices > 1:
+        remaining_commits = len(commits) % 250
+    else:
+        remaining_commits = 0
+    # if only one commit remains, grab its info
+    if remaining_commits == 1:
+        final_commit = commits[-1]
+        sha = final_commit["sha"]
+        url = parse_url(repo_url, "commits")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{url}/{sha}", headers=headers)
+
+        if response.status_code != 200:
+            raise CommitInfoError(
+                f"Failed to obtain commit info. Error code {response.status_code}"
+            )
+        result.append(response.json())
+    # if more than one commit remains, create the final slice
+    elif remaining_commits > 1:
+        index = total_slices*250
+        older_sha = commits[index]["sha"]
+        newer_sha = commits[-1]["sha"]
+        sha_pairs.append((older_sha, newer_sha))
+    # use the slices with /compare endpoint
+    url = parse_url(repo_url, "compare")
+    for sha_pair in sha_pairs:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{url}/{sha_pair[0]}...{sha_pair[1]}", headers=headers)
+        if response.status_code != 200:
+            raise CommitInfoError(
+                f"Failed to obtain commit info. Error code {response.status_code}"
+            )
+        result.append(response.json())
+
+    return result
