@@ -234,7 +234,14 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
 
 
 async def get_contributor_history(repo_url: str) -> list[dict]:
+    """Obtains a repository's full contributor history.
 
+    Args:
+        repo_url (str): The URL in the format https://github.com/user/repo
+
+    Returns:
+        list[dict]: A list of dictionaries for each contributor.
+    """
     headers = {
         "User-Agent": "Gitsy/0.1",
         "X-GitHub-Api-Version": "2022-11-28",
