@@ -84,5 +84,5 @@ def test_get_issues() -> None:
 
 def test_get_pulls() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    pulls = asyncio.run(github_client.get_pulls(repo_url, state="closed"))
+    pulls = asyncio.run(github_client.get_pulls(repo_url))
     assert pulls
