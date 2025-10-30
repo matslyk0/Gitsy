@@ -5,6 +5,10 @@ import backend.analysis_helpers as analysis_helpers
 from datetime import datetime, timedelta
 from backend.exceptions import InsufficientDataError
 
+# uncomment for script-only testing, comment back when done
+import asyncio
+import json
+import time
 
 async def get_commit_frequency(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
@@ -54,7 +58,31 @@ async def get_commit_frequency(
     return total_hours / total_commits
 
 
-async def get_code_churn(
+async def get_code_churn(repo_url: str) -> dict:
+    """Calculates the number of additions, deletions, the total of both,
+        and the net additions. Omits merge commits and empty commits.
+
+    Args:
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
+
+    Returns:
+        dict: A dictionary with the keys "additions", "deletions",
+              "total" (sum), and "net" (difference).
+    """
+    contributor_history = await github_client.get_contributor_history(repo_url)
+    additions = 0
+    deletions = 0
+    for contributor in contributor_history:
+        for week in contributor["weeks"]:
+            additions += week["a"]
+            deletions += week["d"]
+    total = additions + deletions
+    net = additions - deletions
+    return {"additions": additions, "deletions": deletions, "total": total, "net": net}
+
+
+async def old_get_code_churn(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> dict:
     """Calculates the number of additions, deletions, the total of both,
