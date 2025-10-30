@@ -82,53 +82,6 @@ async def get_code_churn(repo_url: str) -> dict:
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-async def old_get_code_churn(
-    repo_url: str, time_from: datetime = None, time_until: datetime = None
-) -> dict:
-    """Calculates the number of additions, deletions, the total of both,
-        and the net additions.
-
-    Args:
-        repo_url (str): The URL of the repository in the format
-                        https://github.com/owner/repo
-        time_from (datetime): The time to start looking from.
-        time_until (datetime): The time to start looking until.
-
-    Returns:
-        dict: A dictionary with the keys "additions", "deletions",
-              "total" (sum), and "net" (difference).
-
-    Raises:
-         InsufficientDataError: If the repository has no commits.
-    """
-    commits = await github_client.get_commits(repo_url)
-    if len(commits) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
-
-    total = 0
-    additions = 0
-    deletions = 0
-
-    keys = ["commit", "author", "date"]
-    if time_from:
-        commits = analysis_helpers.trim_prior_entries(time_from, commits, keys)
-    if time_until:
-        commits = analysis_helpers.trim_leading_entries(time_until, commits, keys)
-
-    for commit in commits:
-        sha = commit["sha"]
-        commit_info = await github_client.get_commit_info(repo_url, sha)
-        stats = commit_info["stats"]
-
-        total += stats["total"]
-        additions += stats["additions"]
-        deletions += stats["deletions"]
-
-    net = additions - deletions
-
-    return {"additions": additions, "deletions": deletions, "total": total, "net": net}
-
-
 async def get_issues_close_time(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
 ) -> float:

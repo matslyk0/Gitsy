@@ -208,31 +208,6 @@ async def get_pulls(
     return pulls
 
 
-async def get_commit_info(repo_url: str, sha: str) -> dict:
-    """Obtains detailed information about a commit.
-
-    Args:
-        repo_url (str): The URL in the format https://github.com/user/repo
-        sha (str): The SHA of the commit.
-
-    Returns:
-        dict: A dictionary containing the information about the commit.
-    """
-    url = parse_url(repo_url, "commits")
-    headers = {
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{url}/{sha}", headers=headers)
-    if response.status_code != 200:
-        raise CommitInfoError(
-            f"Failed to obtain commit info. Error code {response.status_code}"
-        )
-
-    return response.json()
-
-
 async def get_contributor_history(repo_url: str) -> list[dict]:
     """Obtains a repository's full contributor history.
 
