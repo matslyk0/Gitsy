@@ -1,9 +1,9 @@
 import re
 import os
+import time
 import httpx
 import logging
 
-from math import ceil
 from urllib.parse import urlencode
 from backend.exceptions import GitHubAPIError, CommitInfoError
 
@@ -13,7 +13,8 @@ import asyncio
 import json
 load_dotenv()
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") # loaded from docker-compose - locally for testing, GitHub secrets for CI
+# loaded from docker-compose - locally for testing, GitHub secrets for CI and prod
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def parse_data(data: list[dict] | dict | None) -> list[dict]:
@@ -230,3 +231,40 @@ async def get_commit_info(repo_url: str, sha: str) -> dict:
         )
 
     return response.json()
+
+
+async def get_contributor_history(repo_url: str) -> list[dict]:
+
+    headers = {
+        "User-Agent": "Gitsy/0.1",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+    }
+
+    url = parse_url(repo_url, "commits")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+    commits = response.json()
+    if len(commits) >= 10000:
+        raise GitHubAPIError(f"Repository is too large.")
+
+    url = parse_url(repo_url, "stats/contributors")
+    # wait 5s, 10s, 20s, ... , 160s before giving up - total 315s for GitHub to run calculation
+    count = 1
+    while count <= 32:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+
+        if response.status_code == 202:
+            time.sleep(count * 5)
+            count *= 2
+        else:
+            break
+
+    match response.status_code:
+        case 200:
+            return response.json()
+        case 202:
+            raise GitHubAPIError(f"Calculation didn't complete in time.")
+        case _:
+            raise GitHubAPIError(f"GitHub API request failed - Code {response.status_code}")
