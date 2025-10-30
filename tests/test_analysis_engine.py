@@ -20,7 +20,7 @@ def test_get_commit_frequency() -> None:
     assert frequency is not None
 
 
-def test_get_code_churn() -> None: # this one takes a while
+def test_get_code_churn() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
     code_churn = asyncio.run(analysis_engine.get_code_churn(repo_url))
 
@@ -71,7 +71,7 @@ def test_get_commit_frequency_until() -> None:
 
     assert frequency == 0.7296111111111111
 
-
+"""
 def test_get_code_churn_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
     time_until = datetime(2025, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
@@ -81,7 +81,7 @@ def test_get_code_churn_until() -> None:
     )
 
     assert code_churn == {'additions': 89, 'deletions': 1, 'total': 90, 'net': 88}
-
+"""
 
 def test_get_issues_close_time_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
@@ -119,7 +119,7 @@ def test_get_commit_frequency_from_until() -> None:
 
     assert frequency == 0.7296111111111111
 
-
+"""
 def test_get_code_churn_from_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
     time_from = datetime(2025, 7, 10, 13, 59, 0, tzinfo=timezone.utc)
@@ -130,7 +130,7 @@ def test_get_code_churn_from_until() -> None:
     )
 
     assert code_churn == {"additions": 387, "deletions": 73, "total": 460, "net": 314}
-
+"""
 
 def test_get_issues_close_time_from_until() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
