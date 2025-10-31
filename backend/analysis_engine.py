@@ -5,10 +5,11 @@ import backend.analysis_helpers as analysis_helpers
 from datetime import datetime, timedelta
 from backend.exceptions import InsufficientDataError
 
-# uncomment for script-only testing, comment back when done
-import asyncio
-import json
-import time
+# for script-only testing
+# import asyncio
+# import json
+# import time
+
 
 async def get_commit_frequency(
     repo_url: str, time_from: datetime = None, time_until: datetime = None
@@ -71,15 +72,30 @@ async def get_code_churn(repo_url: str) -> dict:
               "total" (sum), and "net" (difference).
     """
     contributor_history = await github_client.get_contributor_history(repo_url)
+
     additions = 0
     deletions = 0
+    commits = 0
+
     for contributor in contributor_history:
-        for week in contributor["weeks"]:
+        weeks = contributor["weeks"]
+        for week in weeks:
             additions += week["a"]
             deletions += week["d"]
+            commits += week["c"]
+
     total = additions + deletions
     net = additions - deletions
-    return {"additions": additions, "deletions": deletions, "total": total, "net": net}
+
+    # the contributors endpoint provides no data for repos with over 10,000 commits
+    if commits >= 10000:
+        success = False
+    else:
+        success = True
+
+    data = {"additions": additions, "deletions": deletions, "total": total, "net": net}
+
+    return {"success": success, "data": data}
 
 
 async def get_issues_close_time(
@@ -183,19 +199,19 @@ async def get_last_updated(repo_url: str) -> datetime:
 
 
 async def create_report(repo_url: str) -> dict:
-    """Calls all analysis functions and formats results into a report in a dict."""
+    """Calls all analysis functions and formats results into a dict report."""
     report_unformatted = await asyncio.gather(
         get_commit_frequency(repo_url),
         get_code_churn(repo_url),
         get_issues_close_time(repo_url),
-        get_pulls_close_time(repo_url)
+        get_pulls_close_time(repo_url),
     )
 
     report_formatted = {
         "commit_frequency": round(report_unformatted[0], 2),
         "code_churn": report_unformatted[1],
         "issues_close_time": round(report_unformatted[2], 2),
-        "pulls_close_time": round(report_unformatted[3], 2)
+        "pulls_close_time": round(report_unformatted[3], 2),
     }
 
     return report_formatted

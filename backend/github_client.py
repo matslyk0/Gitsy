@@ -5,15 +5,15 @@ import httpx
 import logging
 
 from urllib.parse import urlencode
-from backend.exceptions import GitHubAPIError, CommitInfoError
+from backend.exceptions import GitHubAPIError
 
-# uncomment for script-only testing, comment back when done
-from dotenv import load_dotenv
-import asyncio
-import json
-load_dotenv()
+# for script-only testing
+# from dotenv import load_dotenv
+# load_dotenv()
+# import asyncio
+# import json
 
-# loaded from docker-compose - locally for testing, GitHub secrets for CI and prod
+# loaded in docker compose - dev/test: from .env, CI/prod: from GitHub Secrets
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
@@ -151,7 +151,7 @@ async def get_commits(repo_url: str) -> list[dict]:
 
 
 async def get_issues(
-        repo_url: str, state: str = "closed", sort: str = "created"
+    repo_url: str, state: str = "closed", sort: str = "created"
 ) -> list[dict]:
     """Obtains all issues of a repository.
 
@@ -180,7 +180,7 @@ async def get_issues(
 
 
 async def get_pulls(
-        repo_url: str, state: str = "closed", sort: str = "created"
+    repo_url: str, state: str = "closed", sort: str = "created"
 ) -> list[dict]:
     """Obtains all pull requests of a repository.
 
@@ -222,16 +222,9 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
-
-    url = parse_url(repo_url, "commits")
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-    commits = response.json()
-    if len(commits) >= 10000:
-        raise GitHubAPIError(f"Repository is too large.")
-
     url = parse_url(repo_url, "stats/contributors")
-    # wait 5s, 10s, 20s, ... , 160s before giving up - total 315s for GitHub to run calculation
+
+    # wait 5s, 10s, 20s, ... , 160s before giving up - total 315s for GitHub to finish
     count = 1
     while count <= 32:
         async with httpx.AsyncClient() as client:
@@ -247,6 +240,6 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
         case 200:
             return response.json()
         case 202:
-            raise GitHubAPIError(f"Calculation didn't complete in time.")
+            raise GitHubAPIError("Calculation didn't complete in time.")
         case _:
-            raise GitHubAPIError(f"GitHub API request failed - Code {response.status_code}")
+            raise GitHubAPIError(f"GitHub request failed - Code {response.status_code}")

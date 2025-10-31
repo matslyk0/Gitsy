@@ -1,9 +1,15 @@
 from pydantic import BaseModel
 from typing import Dict
 
+
+class CodeChurn(BaseModel):
+    success: bool
+    data: Dict[str, int]
+
+
 class ReportOut(BaseModel):
     commit_frequency: float
-    code_churn: Dict[str, int]
+    code_churn: CodeChurn
     issues_close_time: float
     pulls_close_time: float
 
