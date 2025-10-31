@@ -11,6 +11,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gitsy_db
       DB_HOST: database
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       database:
         condition: service_healthy
@@ -26,7 +27,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gitsy_db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d gitsy_db"]
       interval: 5s
       timeout: 5s
       retries: 5
