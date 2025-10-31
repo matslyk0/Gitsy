@@ -14,22 +14,35 @@ function CreateReportForm({ onClick }) {
 }
 
 function ReportDisplay({ report }) {
+  const commit_frequency = report?.commit_frequency;
+  const issues_close_time = report?.issues_close_time;
+  const pulls_close_time = report?.pulls_close_time;
+
+  const code_churn_valid = report?.code_churn?.success;
+  let code_churn;
+  if (code_churn_valid === true) {
+    code_churn = (
+      <ul>
+        <li>Additions: {report.code_churn.data.additions}</li>
+        <li>Deletions: {report.code_churn.data.deletions}</li>
+        <li>Total: {report.code_churn.data.total}</li>
+        <li>Net: {report.code_churn.data.net}</li>
+      </ul>
+    );
+  } else if (code_churn_valid === false) {
+    code_churn = (
+      <p>The repository is too large to calculate its code churn!</p>
+    );
+  }
+
   return (
     <div className={styles.reportDisplay}>
       <ul>
-        <li>Time Between Commits (hrs): {report?.commit_frequency}</li>
-        <li>
-          Code Churn (Lines of Code):
-          <ul>
-            <li>Additions: {report?.code_churn?.additions}</li>
-            <li>Deletions: {report?.code_churn?.deletions}</li>
-            <li>Total: {report?.code_churn?.total}</li>
-            <li>Net: {report?.code_churn?.net}</li>
-          </ul>
-        </li>
-        <li>Issues Close Time (hrs): {report?.issues_close_time}</li>
-        <li>Pulls Close Time (hrs): {report?.pulls_close_time}</li>
+        <li>Time Between Commits (hrs): {commit_frequency}</li>
+        <li>Issues Close Time (hrs): {issues_close_time}</li>
+        <li>Pulls Close Time (hrs): {pulls_close_time}</li>
       </ul>
+      Code Churn (Lines of Code): {code_churn}
     </div>
   );
 }
@@ -47,14 +60,13 @@ export default function CreateReport() {
   const [report, setReport] = useState([]);
 
   async function CallAnalysisFunction() {
-    const baseUrl =
-      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
-
     const enteredUrl = document.getElementById("urlInput").value;
     document.getElementById("urlInput").value = "";
-
-    const endpointUrl = `${baseUrl}/create-report/generate`;
     const params = { repo_url: enteredUrl };
+
+    const baseUrl =
+      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
+    const endpointUrl = `${baseUrl}/create-report/generate`;
 
     try {
       const response = await axios.get(endpointUrl, { params: params });
