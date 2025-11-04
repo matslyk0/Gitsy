@@ -14,35 +14,44 @@ function CreateReportForm({ onClick }) {
 }
 
 function ReportDisplay({ report }) {
-  const commit_frequency = report?.commit_frequency;
-  const issues_close_time = report?.issues_close_time;
-  const pulls_close_time = report?.pulls_close_time;
+  const errorMessages = {
+    "InsufficientDataError()": "Not enough data!",
+    "GitHubAPIError()": "GitHub request failed!",
+    "GitHubTimeOutError()": "GitHub took too long!",
+    "RepoTooLargeError()": "Repository must be under 10,000 commits!",
+  };
 
-  const code_churn_valid = report?.code_churn?.success;
-  let code_churn;
-  if (code_churn_valid === true) {
-    code_churn = (
-      <ul>
-        <li>Additions: {report.code_churn.data.additions}</li>
-        <li>Deletions: {report.code_churn.data.deletions}</li>
-        <li>Total: {report.code_churn.data.total}</li>
-        <li>Net: {report.code_churn.data.net}</li>
-      </ul>
-    );
-  } else if (code_churn_valid === false) {
-    code_churn = (
-      <p>The repository is too large to calculate its code churn!</p>
-    );
+  const commitFrequency =
+    errorMessages[report?.commit_frequency] ?? report?.commit_frequency;
+  const issuesCloseTime =
+    errorMessages[report?.issues_close_time] ?? report?.issues_close_time;
+  const pullsCloseTime =
+    errorMessages[report?.pulls_close_time] ?? report?.pulls_close_time;
+
+  let codeChurn = "";
+  if (errorMessages[report?.code_churn] == null) {
+    if (report?.code_churn != null) {
+      codeChurn = (
+        <ul>
+          <li>Additions: {report?.code_churn?.additions}</li>
+          <li>Deletions: {report?.code_churn?.deletions}</li>
+          <li>Total: {report?.code_churn?.total}</li>
+          <li>Net: {report?.code_churn?.net}</li>
+        </ul>
+      );
+    }
+  } else {
+    codeChurn = errorMessages[report?.code_churn];
   }
 
   return (
     <div className={styles.reportDisplay}>
       <ul>
-        <li>Time Between Commits (hrs): {commit_frequency}</li>
-        <li>Issues Close Time (hrs): {issues_close_time}</li>
-        <li>Pulls Close Time (hrs): {pulls_close_time}</li>
+        <li>Time Between Commits (hrs): {commitFrequency}</li>
+        <li>Issues Close Time (hrs): {issuesCloseTime}</li>
+        <li>Pulls Close Time (hrs): {pullsCloseTime}</li>
       </ul>
-      Code Churn (Lines of Code): {code_churn}
+      Code Churn (Lines of Code): {codeChurn}
     </div>
   );
 }
