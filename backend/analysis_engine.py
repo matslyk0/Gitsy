@@ -3,7 +3,7 @@ import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
 from datetime import datetime, timedelta
-from backend.exceptions import InsufficientDataError
+from backend.exceptions import InsufficientDataError, RepoTooLargeError
 
 # for script-only testing
 # import asyncio
@@ -26,13 +26,14 @@ async def get_commit_frequency(
         float: The average number of hours between commits.
 
     Raises:
+         GitHubAPIError: If the request to GitHub failed.
          InsufficientDataError: If the repository has less than 2 commits.
     """
     commits = await github_client.get_commits(repo_url)
 
     total_commits = len(commits)
     if total_commits < 2:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientDataError()
 
     if time_from:
         keys = ["commit", "author", "date"]
@@ -70,6 +71,11 @@ async def get_code_churn(repo_url: str) -> dict:
     Returns:
         dict: A dictionary with the keys "additions", "deletions",
               "total" (sum), and "net" (difference).
+
+    Raises:
+        GitHubAPIError: If the request to GitHub failed.
+        GitHubTimeOutError: If GitHub didn't calculate the metric in time.
+        RepoTooLargeError: If the repository has 10,000 commits or more.
     """
     contributor_history = await github_client.get_contributor_history(repo_url)
 
@@ -89,13 +95,9 @@ async def get_code_churn(repo_url: str) -> dict:
 
     # the contributors endpoint provides no data for repos with over 10,000 commits
     if commits >= 10000:
-        success = False
-    else:
-        success = True
+        raise RepoTooLargeError()
 
-    data = {"additions": additions, "deletions": deletions, "total": total, "net": net}
-
-    return {"success": success, "data": data}
+    return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
 async def get_issues_close_time(
@@ -114,10 +116,11 @@ async def get_issues_close_time(
 
     Raises:
          InsufficientDataError: If the repository has no closed issues.
+         GitHubAPIError: If the request to GitHub failed.
     """
     issues = await github_client.get_issues(repo_url)
     if len(issues) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientDataError()
 
     if time_from or time_until:
         # need to sort by "closed_at" before trimming, issues are sorted by "created_at"
@@ -205,13 +208,37 @@ async def create_report(repo_url: str) -> dict:
         get_code_churn(repo_url),
         get_issues_close_time(repo_url),
         get_pulls_close_time(repo_url),
+        return_exceptions=True,
     )
 
+    # parse metrics
+    commit_frequency = report_unformatted[0]
+    if isinstance(commit_frequency, Exception):
+        commit_frequency = repr(commit_frequency)
+    else:
+        commit_frequency = round(commit_frequency, 2)
+
+    code_churn = report_unformatted[1]
+    if isinstance (code_churn, Exception):
+        code_churn = repr(code_churn)
+
+    issues_close_time = report_unformatted[2]
+    if isinstance(issues_close_time, Exception):
+        issues_close_time = repr(issues_close_time)
+    else:
+        issues_close_time = round(issues_close_time, 2)
+
+    pulls_close_time = report_unformatted[3]
+    if isinstance(pulls_close_time, Exception):
+        pulls_close_time = repr(pulls_close_time)
+    else:
+        pulls_close_time = round(pulls_close_time, 2)
+
     report_formatted = {
-        "commit_frequency": round(report_unformatted[0], 2),
-        "code_churn": report_unformatted[1],
-        "issues_close_time": round(report_unformatted[2], 2),
-        "pulls_close_time": round(report_unformatted[3], 2),
+        "commit_frequency": commit_frequency,
+        "code_churn": code_churn,
+        "issues_close_time": issues_close_time,
+        "pulls_close_time": pulls_close_time,
     }
 
     return report_formatted
