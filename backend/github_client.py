@@ -5,7 +5,7 @@ import httpx
 import logging
 
 from urllib.parse import urlencode
-from backend.exceptions import GitHubAPIError
+from backend.exceptions import GitHubAPIError, GitHubTimeOutError
 
 # for script-only testing
 # from dotenv import load_dotenv
@@ -59,7 +59,7 @@ async def get_paginated_data(
         list[dict]: The data as a list of dictionaries.
 
     Raises:
-        GitHubAPIError: If the API returns a non-200 status code.
+        GitHubAPIError: If the request to GitHub failed.
     """
     pages_remaining = True
     data = []
@@ -82,9 +82,7 @@ async def get_paginated_data(
         async with httpx.AsyncClient() as client:
             response = await client.get(url, headers=headers)
         if response.status_code != 200:
-            raise GitHubAPIError(
-                f"Failed to obtain data. Error code {response.status_code}"
-            )
+            raise GitHubAPIError()
 
         parsed_data = parse_data(response.json())
         data += parsed_data
@@ -136,16 +134,14 @@ async def get_commits(repo_url: str) -> list[dict]:
 
     Returns:
         list[dict]: A list with a dictionary for each commit.
+
+    Raises:
+        GitHubAPIError: If the request to GitHub failed.
     """
     commits = []
     url = parse_url(repo_url, "commits")
 
-    try:
-        commits = await get_paginated_data(url)
-    except GitHubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
+    commits = await get_paginated_data(url)
 
     return commits
 
@@ -163,18 +159,14 @@ async def get_issues(
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each issue.
+
+    Raises:
+        GitHubAPIError: If the request to GitHub failed.
     """
     issues = []
     url = parse_url(repo_url, "issues")
 
-    try:
-        issues = await get_paginated_data(
-            url, extra_params={"state": state, "sort": sort}
-        )
-    except GitHubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
+    issues = await get_paginated_data(url, extra_params={"state": state, "sort": sort})
 
     return issues
 
@@ -192,18 +184,14 @@ async def get_pulls(
 
     Returns:
         list[dict]: A list of dictionaries, with a dictionary for each pull request.
+
+    Raises:
+        GitHubAPIError: If the request to GitHub failed.
     """
     pulls = []
     url = parse_url(repo_url, "pulls")
 
-    try:
-        pulls = await get_paginated_data(
-            url, extra_params={"state": state, "sort": sort}
-        )
-    except GitHubAPIError as e:
-        print(e)
-    except Exception as e:
-        logging.exception(f"Something unexpected went wrong: {e}")
+    pulls = await get_paginated_data(url, extra_params={"state": state, "sort": sort})
 
     return pulls
 
@@ -216,6 +204,10 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
 
     Returns:
         list[dict]: A list of dictionaries for each contributor.
+
+    Raises:
+        GitHubTimeOutError: If GitHub didn't calculate the metric in time.
+        GitHubAPIError: If the request to GitHub failed.
     """
     headers = {
         "User-Agent": "Gitsy/0.1",
@@ -240,6 +232,6 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
         case 200:
             return response.json()
         case 202:
-            raise GitHubAPIError("Calculation didn't complete in time.")
+            raise GitHubTimeOutError()
         case _:
-            raise GitHubAPIError(f"GitHub request failed - Code {response.status_code}")
+            raise GitHubAPIError()

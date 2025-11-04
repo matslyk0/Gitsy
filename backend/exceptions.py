@@ -2,13 +2,17 @@ class GitHubAPIError(Exception):
     pass
 
 
+class GitHubTimeOutError(Exception):
+    pass
+
+
 class InsufficientDataError(Exception):
     pass
 
 
-class CommitInfoError(Exception):
+class TimeOutOfBoundsError(Exception):
     pass
 
 
-class TimeOutOfBoundsError(Exception):
+class RepoTooLargeError(Exception):
     pass
