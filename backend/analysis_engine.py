@@ -167,7 +167,7 @@ async def get_pulls_close_time(
     """
     pulls = await github_client.get_pulls(repo_url)
     if len(pulls) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientDataError()
 
     if time_from or time_until:
         # need to sort by "closed_at" before trimming, pulls are sorted by "created_at"
@@ -203,7 +203,7 @@ async def get_last_updated(repo_url: str) -> datetime:
 
 async def create_report(repo_url: str) -> dict:
     """Calls all analysis functions and formats results into a dict report."""
-    report_unformatted = await asyncio.gather(
+    raw_report = await asyncio.gather(
         get_commit_frequency(repo_url),
         get_code_churn(repo_url),
         get_issues_close_time(repo_url),
@@ -212,33 +212,39 @@ async def create_report(repo_url: str) -> dict:
     )
 
     # parse metrics
-    commit_frequency = report_unformatted[0]
-    if isinstance(commit_frequency, Exception):
-        commit_frequency = repr(commit_frequency)
+    raw_commit_frequency = raw_report[0]
+    if isinstance(raw_commit_frequency, Exception):
+        error = type(raw_commit_frequency).__name__
+        parsed_commit_frequency = {"data": None, "error": error}
     else:
-        commit_frequency = round(commit_frequency, 2)
+        parsed_commit_frequency = {"data": raw_commit_frequency, "error": None}
 
-    code_churn = report_unformatted[1]
-    if isinstance (code_churn, Exception):
-        code_churn = repr(code_churn)
-
-    issues_close_time = report_unformatted[2]
-    if isinstance(issues_close_time, Exception):
-        issues_close_time = repr(issues_close_time)
+    raw_code_churn = raw_report[1]
+    if isinstance(raw_code_churn, Exception):
+        error = type(raw_code_churn).__name__
+        parsed_code_churn = {"data": None, "error": error}
     else:
-        issues_close_time = round(issues_close_time, 2)
+        parsed_code_churn = {"data": raw_code_churn, "error": None}
 
-    pulls_close_time = report_unformatted[3]
-    if isinstance(pulls_close_time, Exception):
-        pulls_close_time = repr(pulls_close_time)
+    raw_issues_close_time = raw_report[2]
+    if isinstance(raw_issues_close_time, Exception):
+        error = type(raw_issues_close_time).__name__
+        parsed_issues_close_time = {"data": None, "error": error}
     else:
-        pulls_close_time = round(pulls_close_time, 2)
+        parsed_issues_close_time = {"data": raw_issues_close_time, "error": None}
 
-    report_formatted = {
-        "commit_frequency": commit_frequency,
-        "code_churn": code_churn,
-        "issues_close_time": issues_close_time,
-        "pulls_close_time": pulls_close_time,
+    raw_pulls_close_time = raw_report[3]
+    if isinstance(raw_pulls_close_time, Exception):
+        error = type(raw_pulls_close_time).__name__
+        parsed_pulls_close_time = {"data": None, "error": error}
+    else:
+        parsed_pulls_close_time = {"data": raw_pulls_close_time, "error": None}
+
+    parsed_report = {
+        "commit_frequency": parsed_commit_frequency,
+        "code_churn": parsed_code_churn,
+        "issues_close_time": parsed_issues_close_time,
+        "pulls_close_time": parsed_pulls_close_time,
     }
 
-    return report_formatted
+    return parsed_report
