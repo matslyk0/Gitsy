@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 
 from backend.database import Base
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 
 
 class Repositories(Base):
@@ -23,15 +23,15 @@ class Reports(Base):
     report_id = Column(Integer, primary_key=True, index=True)
     repo_id = Column(Integer, ForeignKey("repositories.repo_id"), index=True)
 
-    commit_frequency = Column(Float, index=True)
+    commit_frequency = Column(JSONB, index=True)
     code_churn = Column(JSONB, index=True)
-    issues_close_time = Column(Float, index=True)
-    pulls_close_time = Column(Float, index=True)
+    issues_close_time = Column(JSONB, index=True)
+    pulls_close_time = Column(JSONB, index=True)
 
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        index=True
+        index=True,
     )
     last_updated = Column(
         DateTime(timezone=True),
