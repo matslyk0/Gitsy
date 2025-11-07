@@ -1,0 +1,22 @@
+.card {
+  background-color: darkseagreen;
+  border: 0px solid white; /* for debugging */
+  border-radius: 10px;
+  box-shadow: 0px 0px 0px rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  margin: 5px;
+  padding: 10px;
+}
+
+.card h2 {
+  border: 0px solid white; /* for debugging */
+  margin: 0;
+}
+
+.card div {
+  border: 0px solid white; /* for debugging */
+  overflow: hidden;
+}
