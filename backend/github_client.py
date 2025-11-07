@@ -79,7 +79,7 @@ async def get_paginated_data(
         headers = headers | extra_headers
 
     while pages_remaining:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             response = await client.get(url, headers=headers)
         if response.status_code != 200:
             raise GitHubAPIError()
