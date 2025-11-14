@@ -17,50 +17,65 @@ function CreateReportForm({ onClick }) {
 }
 
 function ReportDisplay({ report }) {
-  const errorMessages = {
-    InsufficientDataError: "Not enough data!",
-    GitHubAPIError: "GitHub request failed!",
-    GitHubTimeOutError: "GitHub took too long!",
-    RepoTooLargeError: "Repository must be under 10,000 commits!",
-  };
-
   const commitFrequency = (() => {
     if (!report) return null;
 
-    const { data, error } = report.commit_frequency;
-    if (error) return errorMessages[error] || "Unknown error occurred!";
+    const { status_code, data, error_name, error_message } =
+      report.commit_frequency;
 
-    return data;
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
   })();
+
   const issuesCloseTime = (() => {
     if (!report) return null;
 
-    const { data, error } = report.issues_close_time;
-    if (error) return errorMessages[error] || "Unknown error occurred!";
+    const { status_code, data, error_name, error_message } =
+      report.issues_close_time;
 
-    return data;
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
   })();
+
   const pullsCloseTime = (() => {
     if (!report) return null;
 
-    const { data, error } = report.pulls_close_time;
-    if (error) return errorMessages[error] || "Unknown error occurred!";
+    const { status_code, data, error_name, error_message } =
+      report.pulls_close_time;
 
-    return data;
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
   })();
+
   const codeChurn = (() => {
     if (!report) return null;
 
-    const { data, error } = report.code_churn;
-    if (error) return errorMessages[error] || "Unknown error occurred!";
+    const { status_code, data, error_name, error_message } = report.code_churn;
 
-    const { additions, deletions, total, net } = data;
-    return `
-      Additions: ${additions},
-      Deletions: ${deletions},
-      Total: ${total},
-      Net: ${net}
-      `;
+    if (status_code === 200) {
+      const { additions, deletions, total, net } = data;
+      return `
+        Additions: ${additions},
+        Deletions: ${deletions},
+        Total: ${total},
+        Net: ${net}
+        `;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
   })();
 
   return (
