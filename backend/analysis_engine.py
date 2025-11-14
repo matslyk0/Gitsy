@@ -223,7 +223,7 @@ async def create_report(repo_url: str) -> dict:
                 "status_code": raw_metric.status_code,
                 "data": None,
                 "error_name": type(raw_metric).__name__,
-                "error_message:": raw_metric.error_message,
+                "error_message": raw_metric.error_message,
             }
         else:
             parsed_metric = {
