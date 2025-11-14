@@ -3,7 +3,16 @@ import backend.github_client as github_client
 import backend.analysis_helpers as analysis_helpers
 
 from datetime import datetime, timedelta
-from backend.exceptions import InsufficientDataError
+from backend.exceptions import (
+    InsufficientCommitsError,
+    InsufficientPullsError,
+    InsufficientIssuesError,
+    RepoTooLargeError,
+)
+
+# for script-only testing
+# import json
+# import time
 
 
 async def get_commit_frequency(
@@ -21,13 +30,14 @@ async def get_commit_frequency(
         float: The average number of hours between commits.
 
     Raises:
-         InsufficientDataError: If the repository has less than 2 commits.
+         GitHubAPIError: If the request to GitHub failed.
+         InsufficientCommitsError: If the repository has less than 2 commits.
     """
     commits = await github_client.get_commits(repo_url)
 
     total_commits = len(commits)
     if total_commits < 2:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientCommitsError()
 
     if time_from:
         keys = ["commit", "author", "date"]
@@ -54,49 +64,42 @@ async def get_commit_frequency(
     return total_hours / total_commits
 
 
-async def get_code_churn(
-    repo_url: str, time_from: datetime = None, time_until: datetime = None
-) -> dict:
+async def get_code_churn(repo_url: str) -> dict:
     """Calculates the number of additions, deletions, the total of both,
-        and the net additions.
+        and the net additions. Omits merge commits and empty commits.
 
     Args:
         repo_url (str): The URL of the repository in the format
                         https://github.com/owner/repo
-        time_from (datetime): The time to start looking from.
-        time_until (datetime): The time to start looking until.
 
     Returns:
         dict: A dictionary with the keys "additions", "deletions",
               "total" (sum), and "net" (difference).
 
     Raises:
-         InsufficientDataError: If the repository has no commits.
+        GitHubAPIError: If the request to GitHub failed.
+        GitHubTimeOutError: If GitHub didn't calculate the metric in time.
+        RepoTooLargeError: If the repository has 10,000 commits or more.
     """
-    commits = await github_client.get_commits(repo_url)
-    if len(commits) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+    contributor_history = await github_client.get_contributor_history(repo_url)
 
-    total = 0
     additions = 0
     deletions = 0
+    commits = 0
 
-    keys = ["commit", "author", "date"]
-    if time_from:
-        commits = analysis_helpers.trim_prior_entries(time_from, commits, keys)
-    if time_until:
-        commits = analysis_helpers.trim_leading_entries(time_until, commits, keys)
+    for contributor in contributor_history:
+        weeks = contributor["weeks"]
+        for week in weeks:
+            additions += week["a"]
+            deletions += week["d"]
+            commits += week["c"]
 
-    for commit in commits:
-        sha = commit["sha"]
-        commit_info = await github_client.get_commit_info(repo_url, sha)
-        stats = commit_info["stats"]
-
-        total += stats["total"]
-        additions += stats["additions"]
-        deletions += stats["deletions"]
-
+    total = additions + deletions
     net = additions - deletions
+
+    # the contributors endpoint still returns status 200 even if the repo is too large
+    if commits >= 10000:
+        raise RepoTooLargeError()
 
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
@@ -116,11 +119,12 @@ async def get_issues_close_time(
         float: The average number of hours for an issue to be closed.
 
     Raises:
-         InsufficientDataError: If the repository has no closed issues.
+         GitHubAPIError: If the request to GitHub failed.
+         InsufficientIssuesError: If the repository has no closed issues.
     """
     issues = await github_client.get_issues(repo_url)
     if len(issues) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientIssuesError()
 
     if time_from or time_until:
         # need to sort by "closed_at" before trimming, issues are sorted by "created_at"
@@ -163,11 +167,12 @@ async def get_pulls_close_time(
         float: The average number of hours for a pull request to be merged or closed.
 
     Raises:
-         InsufficientDataError: If there are no closed or merged pull requests.
+        GitHubAPIError: If the request to GitHub failed.
+        InsufficientPullsError: If there are no closed or merged pull requests.
     """
     pulls = await github_client.get_pulls(repo_url)
     if len(pulls) == 0:
-        raise InsufficientDataError("Not enough data to perform calculation.")
+        raise InsufficientPullsError()
 
     if time_from or time_until:
         # need to sort by "closed_at" before trimming, pulls are sorted by "created_at"
@@ -202,19 +207,38 @@ async def get_last_updated(repo_url: str) -> datetime:
 
 
 async def create_report(repo_url: str) -> dict:
-    """Calls all analysis functions and formats results into a report in a dict."""
-    report_unformatted = await asyncio.gather(
+    """Calls all analysis functions and formats results into a dict report."""
+    raw_report = await asyncio.gather(
         get_commit_frequency(repo_url),
         get_code_churn(repo_url),
         get_issues_close_time(repo_url),
-        get_pulls_close_time(repo_url)
+        get_pulls_close_time(repo_url),
+        return_exceptions=True,
     )
 
-    report_formatted = {
-        "commit_frequency": round(report_unformatted[0], 2),
-        "code_churn": report_unformatted[1],
-        "issues_close_time": round(report_unformatted[2], 2),
-        "pulls_close_time": round(report_unformatted[3], 2)
+    parsed_metrics = []
+    for raw_metric in raw_report:
+        if isinstance(raw_metric, Exception):
+            parsed_metric = {
+                "status_code": raw_metric.status_code,
+                "data": None,
+                "error_name": type(raw_metric).__name__,
+                "error_message": raw_metric.error_message,
+            }
+        else:
+            parsed_metric = {
+                "status_code": 200,
+                "data": raw_metric,
+                "error_name": None,
+                "error_message": None,
+            }
+        parsed_metrics.append(parsed_metric)
+
+    parsed_report = {
+        "commit_frequency": parsed_metrics[0],
+        "code_churn": parsed_metrics[1],
+        "issues_close_time": parsed_metrics[2],
+        "pulls_close_time": parsed_metrics[3],
     }
 
-    return report_formatted
+    return parsed_report

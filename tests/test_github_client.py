@@ -69,13 +69,6 @@ def test_get_commits() -> None:
     assert commits
 
 
-def test_get_commit_info() -> None:
-    sha = "42e3978c91d90c51c1a7a0e154bd92fe5021783f"
-    repo_url = "https://github.com/matslyk0/Gitsy"
-    commit = asyncio.run(github_client.get_commit_info(repo_url, sha))
-    assert commit
-
-
 def test_get_issues() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
     issues = asyncio.run(github_client.get_issues(repo_url))
@@ -84,5 +77,10 @@ def test_get_issues() -> None:
 
 def test_get_pulls() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    pulls = asyncio.run(github_client.get_pulls(repo_url, state="closed"))
+    pulls = asyncio.run(github_client.get_pulls(repo_url))
     assert pulls
+
+def test_get_contributor_history() -> None:
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    contributor_history = asyncio.run(github_client.get_contributor_history(repo_url))
+    assert contributor_history

@@ -1,14 +1,33 @@
 class GitHubAPIError(Exception):
-    pass
+    status_code = 502
+    error_message = "GitHub API request failed."
 
 
-class InsufficientDataError(Exception):
-    pass
+class GitHubTimeOutError(Exception):
+    status_code = 504
+    error_message = "GitHub did not respond in time."
 
 
-class CommitInfoError(Exception):
-    pass
+class InsufficientCommitsError(Exception):
+    status_code = 422
+    error_message = "Repository has less than 2 Commits."
+
+
+class InsufficientIssuesError(Exception):
+    status_code = 422
+    error_message = "Repository has no closed Issues."
+
+
+class InsufficientPullsError(Exception):
+    status_code = 422
+    error_message = "Repository has no closed Pull Requests"
+
+
+class RepoTooLargeError(Exception):
+    status_code = 413
+    error_message = "Repository must be under 10,000 commits."
 
 
 class TimeOutOfBoundsError(Exception):
-    pass
+    status_code = 422
+    error_message = "Provided timestamps are unprocessable."

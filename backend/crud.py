@@ -60,7 +60,11 @@ async def update_postgres_report(
 async def create_redis_report(
         db_report: models.Reports, redis_report_id: str, r: redis.Redis, ttl: int
 ) -> None:
+    serialised_commit_frequency = json.dumps(db_report.commit_frequency)
     serialised_code_churn = json.dumps(db_report.code_churn)
+    serialised_issues_close_time = json.dumps(db_report.issues_close_time)
+    serialised_pulls_close_time = json.dumps(db_report.pulls_close_time)
+
     iso_created_at = db_report.created_at.isoformat()
     iso_last_updated = db_report.last_updated.isoformat()
 
@@ -69,10 +73,12 @@ async def create_redis_report(
         mapping={
             "report_id": db_report.report_id,
             "repo_id": db_report.repo_id,
-            "commit_frequency": db_report.commit_frequency,
+
+            "commit_frequency": serialised_commit_frequency,
             "code_churn": serialised_code_churn,
-            "issues_close_time": db_report.issues_close_time,
-            "pulls_close_time": db_report.pulls_close_time,
+            "issues_close_time": serialised_issues_close_time,
+            "pulls_close_time": serialised_pulls_close_time,
+
             "created_at": iso_created_at,
             "last_updated": iso_last_updated
         },
@@ -84,13 +90,19 @@ async def create_redis_report(
 async def update_redis_report(
     redis_report_id: str, db_report: models.Reports, r: redis.Redis, ttl: int
 ) -> None:
+    serialised_commit_frequency = json.dumps(db_report.commit_frequency)
     serialised_code_churn = json.dumps(db_report.code_churn)
+    serialised_issues_close_time = json.dumps(db_report.issues_close_time)
+    serialised_pulls_close_time = json.dumps(db_report.pulls_close_time)
+
     iso_last_updated = db_report.last_updated.isoformat()
+
     mapping = {
-        "commit_frequency": db_report.commit_frequency,
+        "commit_frequency": serialised_commit_frequency,
         "code_churn": serialised_code_churn,
-        "issues_close_time": db_report.issues_close_time,
-        "pulls_close_time": db_report.pulls_close_time,
+        "issues_close_time": serialised_issues_close_time,
+        "pulls_close_time": serialised_pulls_close_time,
+
         "last_updated": iso_last_updated
     }
     await r.hset(redis_report_id, mapping=mapping)
@@ -143,17 +155,17 @@ async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
     if redis_report == {}:
         return redis_report
 
-    redis_report["report_id"] = int(redis_report["report_id"])
-    redis_report["repo_id"] = int(redis_report["repo_id"])
-    redis_report["commit_frequency"] = float(redis_report["commit_frequency"])
-    redis_report["code_churn"] = json.loads(redis_report["code_churn"])
-    redis_report["issues_close_time"] = float(redis_report["issues_close_time"])
-    redis_report["pulls_close_time"] = float(redis_report["pulls_close_time"])
-    redis_report["created_at"] = analysis_helpers.parse_timestamp(
-        redis_report["created_at"]
-    )
-    redis_report["last_updated"] = analysis_helpers.parse_timestamp(
-        redis_report["last_updated"]
-    )
+    parsed_report = {
+        "report_id": int(redis_report["report_id"]),
+        "repo_id": int(redis_report["repo_id"]),
 
-    return redis_report
+        "commit_frequency": json.loads(redis_report["commit_frequency"]),
+        "code_churn": json.loads(redis_report["code_churn"]),
+        "issues_close_time": json.loads(redis_report["issues_close_time"]),
+        "pulls_close_time": json.loads(redis_report["pulls_close_time"]),
+
+        "created_at": analysis_helpers.parse_timestamp(redis_report["created_at"]),
+        "last_updated": analysis_helpers.parse_timestamp(redis_report["last_updated"])
+    }
+
+    return parsed_report

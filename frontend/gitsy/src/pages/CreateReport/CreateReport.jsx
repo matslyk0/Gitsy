@@ -1,6 +1,9 @@
+import styles from "./CreateReport.module.css";
+
 import Banner from "../../components/Banner/Banner.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
-import styles from "./CreateReport.module.css";
+import Card from "../../components/Card/Card.jsx";
+
 import axios from "axios";
 import React, { useState } from "react";
 
@@ -14,22 +17,73 @@ function CreateReportForm({ onClick }) {
 }
 
 function ReportDisplay({ report }) {
+  const commitFrequency = (() => {
+    if (!report) return null;
+
+    const { status_code, data, error_name, error_message } =
+      report.commit_frequency;
+
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
+  })();
+
+  const issuesCloseTime = (() => {
+    if (!report) return null;
+
+    const { status_code, data, error_name, error_message } =
+      report.issues_close_time;
+
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
+  })();
+
+  const pullsCloseTime = (() => {
+    if (!report) return null;
+
+    const { status_code, data, error_name, error_message } =
+      report.pulls_close_time;
+
+    if (status_code === 200) {
+      return `${data.toFixed(3)} hrs`;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
+  })();
+
+  const codeChurn = (() => {
+    if (!report) return null;
+
+    const { status_code, data, error_name, error_message } = report.code_churn;
+
+    if (status_code === 200) {
+      const { additions, deletions, total, net } = data;
+      return `
+        Additions: ${additions},
+        Deletions: ${deletions},
+        Total: ${total},
+        Net: ${net}
+        `;
+    } else {
+      console.log(`${status_code} - ${error_name} - ${error_message}`);
+      return error_message;
+    }
+  })();
+
   return (
     <div className={styles.reportDisplay}>
-      <ul>
-        <li>Time Between Commits (hrs): {report?.commit_frequency}</li>
-        <li>
-          Code Churn (Lines of Code):
-          <ul>
-            <li>Additions: {report?.code_churn?.additions}</li>
-            <li>Deletions: {report?.code_churn?.deletions}</li>
-            <li>Total: {report?.code_churn?.total}</li>
-            <li>Net: {report?.code_churn?.net}</li>
-          </ul>
-        </li>
-        <li>Issues Close Time (hrs): {report?.issues_close_time}</li>
-        <li>Pulls Close Time (hrs): {report?.pulls_close_time}</li>
-      </ul>
+      <Card metricName="Commit Frequency" metricData={commitFrequency} />
+      <Card metricName="Issues Close Time" metricData={issuesCloseTime} />
+      <Card metricName="Pulls Close Time" metricData={pullsCloseTime} />
+      <Card metricName="Code Churn" metricData={codeChurn} />
     </div>
   );
 }
@@ -44,17 +98,16 @@ export default function CreateReport() {
     justifyContent: "center",
   };
 
-  const [report, setReport] = useState([]);
+  const [report, setReport] = useState(null);
 
   async function CallAnalysisFunction() {
-    const baseUrl =
-      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
-
     const enteredUrl = document.getElementById("urlInput").value;
     document.getElementById("urlInput").value = "";
-
-    const endpointUrl = `${baseUrl}/create-report/generate`;
     const params = { repo_url: enteredUrl };
+
+    const baseUrl =
+      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
+    const endpointUrl = `${baseUrl}/create-report/generate`;
 
     try {
       const response = await axios.get(endpointUrl, { params: params });
