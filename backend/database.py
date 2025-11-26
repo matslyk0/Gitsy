@@ -1,10 +1,10 @@
 import os
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from fastapi import Depends
 from typing import Annotated
 from sqlalchemy.orm import Session
-from fastapi import Depends
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 # the environment variables are loaded by docker compose in the backend container
 POSTGRES_USER = os.getenv("POSTGRES_USER")
@@ -20,17 +20,3 @@ DATABASE_URL = (
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# type alias needed so importing in another file doesn't cause IDE to flag an error
-db_dependency: type[Annotated[Session, Depends(get_db)]] = Annotated[
-    Session, Depends(get_db)
-]

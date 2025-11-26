@@ -2,6 +2,7 @@ import re
 import os
 import time
 import httpx
+import asyncio
 import logging
 
 from urllib.parse import urlencode
@@ -15,6 +16,8 @@ from backend.exceptions import GitHubAPIError, GitHubTimeOutError
 
 # loaded in docker compose - dev/test: from .env, CI/prod: from GitHub Secrets
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+semaphore = asyncio.Semaphore(4)
 
 
 def parse_data(data: list[dict] | dict | None) -> list[dict]:
@@ -79,8 +82,9 @@ async def get_paginated_data(
         headers = headers | extra_headers
 
     while pages_remaining:
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.get(url, headers=headers)
+        async with semaphore:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.get(url, headers=headers)
         if response.status_code != 200:
             raise GitHubAPIError()
 
