@@ -4,7 +4,7 @@ import backend.models as models
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine
-from backend.routers import reports, pages
+from backend.routers import reports
 
 
 def create_app():
@@ -26,6 +26,5 @@ def create_app():
         models.Base.metadata.create_all(bind=engine)
 
     app.include_router(reports.router)
-    app.include_router(pages.router)
 
     return app
