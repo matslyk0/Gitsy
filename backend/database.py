@@ -31,9 +31,9 @@ def postgres_context():
 
 
 @contextmanager
-def redis_context(host: str, port: int, decode_responses: bool):
+async def redis_context(host: str, port: int, decode_responses: bool):
     r = redis.Redis(host=host, port=port, decode_responses=decode_responses)
     try:
         yield r
     finally:
-        r.close()
+        await r.close()

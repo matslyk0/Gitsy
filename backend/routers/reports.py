@@ -12,7 +12,7 @@ router = APIRouter()
 async def create_report(repo_url: str, redis_host: str = "redis-db", ttl: int = 3600):
     repo_last_updated = await analysis_engine.get_last_updated(repo_url)
 
-    with redis_context(host=redis_host, port=6379, decode_responses=True) as r:
+    async with redis_context(host=redis_host, port=6379, decode_responses=True) as r:
         # A - check if redis has the report
         redis_report_id = crud.get_redis_report_id(repo_url)
         if await r.exists(redis_report_id):
