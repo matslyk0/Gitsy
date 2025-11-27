@@ -2,7 +2,7 @@ import os
 import redis.asyncio as redis
 
 from sqlalchemy import create_engine
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # the environment variables are loaded by docker compose in the backend container
@@ -30,7 +30,7 @@ def postgres_context():
         session.close()
 
 
-@contextmanager
+@asynccontextmanager
 async def redis_context(host: str, port: int, decode_responses: bool):
     r = redis.Redis(host=host, port=port, decode_responses=decode_responses)
     try:
