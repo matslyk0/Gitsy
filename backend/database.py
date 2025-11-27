@@ -1,9 +1,8 @@
 import os
+import redis.asyncio as redis
 
-from fastapi import Depends
-from typing import Annotated
-from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
+from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # the environment variables are loaded by docker compose in the backend container
@@ -20,3 +19,21 @@ DATABASE_URL = (
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+@contextmanager
+def postgres_context():
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@contextmanager
+def redis_context(host: str, port: int, decode_responses: bool):
+    r = redis.Redis(host=host, port=port, decode_responses=decode_responses)
+    try:
+        yield r
+    finally:
+        r.close()
