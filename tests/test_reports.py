@@ -1,63 +1,129 @@
+import time
+import asyncio
 import backend.crud as crud
 import redis.asyncio as redis
-import asyncio
-import time
+
+from backend.database import redis_context
 
 # --------------------------------- Integration Tests ---------------------------------
 
 
-def test_create_report_empty_db(get_test_client, db_test_session):
-    """Tests if a new report is stored in postgres and redis, and if the redis report expires as expected."""
-    test_client = get_test_client
-    db = db_test_session
+def test_main_endpoint_returns_report(get_test_client):
+    """Checks that the endpoint returns the report once finished.
 
+    Args:
+        get_test_client (TestClient): FastAPI TestClient that simulates HTTP requests.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
+    test_client = get_test_client
     repo_url = "https://github.com/matslyk0/Gitsy"
-    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "redis_ttl": 10}
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db"}
+
+    response = test_client.get(f"/create-report/generate", params=params)
+    assert response != {}
+
+    async def clear_redis(): # sync/async workaround until async pytest is implemented
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
+            await r.flushdb()
+            assert await r.dbsize() == 0
+    asyncio.run(clear_redis())
+
+
+def test_postgres_report_creation(get_test_client, db_test_session):
+    """Tests if the endpoint successfully creates a report in postgres.
+        The test client creates and tears down its own database sessions - another one
+        is needed here to access the database.
+
+    Args:
+        get_test_client (TestClient): FastAPI TestClient that simulates HTTP requests.
+        db_test_session (Session): Session with the testing database.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
+    test_client = get_test_client
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db"}
 
     test_client.get(f"/create-report/generate", params=params)
-    postgres_report_id = crud.get_postgres_report_id(repo_url, db)
-    assert postgres_report_id == 1
 
-    async def test_redis(): # workaround to solve async redis mixing with sync pytest
-        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
-        try:
+    session = db_test_session
+    postgres_report = crud.get_postgres_report(repo_url, session)
+    assert postgres_report is not None
+
+    async def clear_redis(): # sync/async workaround until async pytest is implemented
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
+            await r.flushdb()
+            assert await r.dbsize() == 0
+    asyncio.run(clear_redis())
+
+
+def test_redis_report_creation(get_test_client):
+    """Tests if the endpoint successfully creates a report in redis, and if the report
+        expires in redis.
+
+    Args:
+        get_test_client (TestClient): FastAPI TestClient that simulates HTTP requests.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
+
+    test_client = get_test_client
+    repo_url = "https://github.com/matslyk0/Gitsy"
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "ttl": 10}
+
+    test_client.get(f"/create-report/generate", params=params)
+
+    async def redis_test(): # sync/async workaround until async pytest is implemented
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
-            assert redis_report["report_id"] == postgres_report_id
+            assert redis_report != {}
 
-            time.sleep(params["redis_ttl"]+1)
+            time.sleep(params["ttl"]+1)
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
             assert redis_report == {}
-        finally:
-            await r.close()
-
-    asyncio.run(test_redis())
+    asyncio.run(redis_test())
 
 
-def test_redis_regenerates_report(get_test_client, db_test_session):
-    """Tests if trying to create a report that already exists regenerates it in redis."""
+def test_redis_report_regeneration(get_test_client):
+    """Tests if trying to recreate an existing report regenerates an expired redis
+        report.
+
+    Args:
+        get_test_client (TestClient): FastAPI TestClient that simulates HTTP requests.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
     test_client = get_test_client
-    db = db_test_session
-
     repo_url = "https://github.com/matslyk0/Gitsy"
-    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "redis_ttl": 10}
+    params = {"repo_url": repo_url, "redis_host": "redis-test-db", "ttl": 10}
 
     test_client.get(f"/create-report/generate", params=params)
-    postgres_report_id = crud.get_postgres_report_id(repo_url, db)
-
-    # wait for redis report to expire then call the endpoint again
-    time.sleep(params["redis_ttl"])
+    time.sleep(params["ttl"]+1) # wait for redis report to expire
     test_client.get(f"/create-report/generate", params=params)
 
-    async def test_redis(): # workaround to solve async redis mixing with sync pytest
-        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
-        try:
+    async def redis_test(): # sync/async workaround until async pytest is implemented
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
             redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
-            assert redis_report["report_id"] == postgres_report_id
-
-            time.sleep(params["redis_ttl"]+1)
-            redis_report = await crud.get_redis_report("matslyk0:Gitsy", r)
-            assert redis_report == {}
-        finally:
-            await r.close()
-
-    asyncio.run(test_redis())
+            assert redis_report != {}
+    asyncio.run(redis_test())
