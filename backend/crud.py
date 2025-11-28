@@ -10,6 +10,9 @@ from sqlalchemy.dialects.postgresql import insert
 from backend.models import Repositories, Reports
 
 
+# <<< postgres operations >>>
+
+
 async def create_postgres_report(repo_url: str, report: dict, session: Session) -> None:
     """Adds the repository to postgres, creates a report and stores it postgres, then
         returns the report id.
@@ -49,69 +52,6 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
     session.commit()
 
 
-async def update_postgres_report(repo_url: str, report: dict, session: Session) -> None:
-    """Updates the report in the database."""
-    postgres_report = get_postgres_report(repo_url, session)
-    stmt = (
-        update(Reports)
-        .where(Reports.report_id == postgres_report.report_id)
-        .values(**report)
-    )
-
-    session.execute(stmt)
-    session.commit()
-    session.refresh(postgres_report)  # so the timestamps can be passed to Redis
-
-
-async def create_redis_report(
-    db_report: Reports, redis_report_id: str, r: redis.Redis, ttl: int
-) -> None:
-    serialised_commit_frequency = json.dumps(db_report.commit_frequency)
-    serialised_code_churn = json.dumps(db_report.code_churn)
-    serialised_issues_close_time = json.dumps(db_report.issues_close_time)
-    serialised_pulls_close_time = json.dumps(db_report.pulls_close_time)
-
-    iso_created_at = db_report.created_at.isoformat()
-    iso_last_updated = db_report.last_updated.isoformat()
-
-    await r.hset(
-        redis_report_id,
-        mapping={
-            "report_id": db_report.report_id,
-            "repo_id": db_report.repo_id,
-            "commit_frequency": serialised_commit_frequency,
-            "code_churn": serialised_code_churn,
-            "issues_close_time": serialised_issues_close_time,
-            "pulls_close_time": serialised_pulls_close_time,
-            "created_at": iso_created_at,
-            "last_updated": iso_last_updated,
-        },
-    )
-
-    await r.expire(redis_report_id, ttl)
-
-
-async def update_redis_report(
-    redis_report_id: str, db_report: Reports, r: redis.Redis, ttl: int
-) -> None:
-    serialised_commit_frequency = json.dumps(db_report.commit_frequency)
-    serialised_code_churn = json.dumps(db_report.code_churn)
-    serialised_issues_close_time = json.dumps(db_report.issues_close_time)
-    serialised_pulls_close_time = json.dumps(db_report.pulls_close_time)
-
-    iso_last_updated = db_report.last_updated.isoformat()
-
-    mapping = {
-        "commit_frequency": serialised_commit_frequency,
-        "code_churn": serialised_code_churn,
-        "issues_close_time": serialised_issues_close_time,
-        "pulls_close_time": serialised_pulls_close_time,
-        "last_updated": iso_last_updated,
-    }
-    await r.hset(redis_report_id, mapping=mapping)
-    await r.expire(redis_report_id, ttl)
-
-
 def get_postgres_report(repo_url: str, session: Session) -> Reports | None:
     owner, repo_name = github_client.get_owner_and_reponame(repo_url)
 
@@ -127,18 +67,58 @@ def get_postgres_report(repo_url: str, session: Session) -> Reports | None:
         .scalar()
     )
 
-    db_report = (
+    postgres_report = (
         session.query(Reports)
         .filter(Reports.report_id == report_id)
         .one_or_none()
     )
 
-    return db_report
+    return postgres_report
 
 
-def get_redis_report_id(repo_url) -> str:
-    owner, repo_name = github_client.get_owner_and_reponame(repo_url)
-    return f"{owner}:{repo_name}"
+async def update_postgres_report(repo_url: str, report: dict, session: Session) -> None:
+    """Updates the report in the database."""
+    postgres_report = get_postgres_report(repo_url, session)
+    stmt = (
+        update(Reports)
+        .where(Reports.report_id == postgres_report.report_id)
+        .values(**report)
+    )
+
+    session.execute(stmt)
+    session.commit()
+    session.refresh(postgres_report)  # so the timestamps can be passed to Redis
+
+
+# <<< redis operations >>>
+
+
+async def create_redis_report(
+    postgres_report: Reports, redis_report_id: str, r: redis.Redis, ttl: int
+) -> None:
+    serialised_commit_frequency = json.dumps(postgres_report.commit_frequency)
+    serialised_code_churn = json.dumps(postgres_report.code_churn)
+    serialised_issues_close_time = json.dumps(postgres_report.issues_close_time)
+    serialised_pulls_close_time = json.dumps(postgres_report.pulls_close_time)
+
+    iso_created_at = postgres_report.created_at.isoformat()
+    iso_last_updated = postgres_report.last_updated.isoformat()
+
+    await r.hset(
+        redis_report_id,
+        mapping={
+            "report_id": postgres_report.report_id,
+            "repo_id": postgres_report.repo_id,
+            "commit_frequency": serialised_commit_frequency,
+            "code_churn": serialised_code_churn,
+            "issues_close_time": serialised_issues_close_time,
+            "pulls_close_time": serialised_pulls_close_time,
+            "created_at": iso_created_at,
+            "last_updated": iso_last_updated,
+        },
+    )
+
+    await r.expire(redis_report_id, ttl)
 
 
 async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
@@ -160,3 +140,29 @@ async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
     }
 
     return parsed_report
+
+
+async def update_redis_report(
+    redis_report_id: str, postgres_report: Reports, r: redis.Redis, ttl: int
+) -> None:
+    serialised_commit_frequency = json.dumps(postgres_report.commit_frequency)
+    serialised_code_churn = json.dumps(postgres_report.code_churn)
+    serialised_issues_close_time = json.dumps(postgres_report.issues_close_time)
+    serialised_pulls_close_time = json.dumps(postgres_report.pulls_close_time)
+
+    iso_last_updated = postgres_report.last_updated.isoformat()
+
+    mapping = {
+        "commit_frequency": serialised_commit_frequency,
+        "code_churn": serialised_code_churn,
+        "issues_close_time": serialised_issues_close_time,
+        "pulls_close_time": serialised_pulls_close_time,
+        "last_updated": iso_last_updated,
+    }
+    await r.hset(redis_report_id, mapping=mapping)
+    await r.expire(redis_report_id, ttl)
+
+# TODO: move or get rid of this
+def get_redis_report_id(repo_url) -> str:
+    owner, repo_name = github_client.get_owner_and_reponame(repo_url)
+    return f"{owner}:{repo_name}"
