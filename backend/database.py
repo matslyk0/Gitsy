@@ -1,10 +1,9 @@
 import os
+import redis.asyncio as redis
 
 from sqlalchemy import create_engine
+from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy.orm import sessionmaker, declarative_base
-from typing import Annotated
-from sqlalchemy.orm import Session
-from fastapi import Depends
 
 # the environment variables are loaded by docker compose in the backend container
 POSTGRES_USER = os.getenv("POSTGRES_USER")
@@ -22,15 +21,19 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-def get_db():
-    db = SessionLocal()
+@contextmanager
+def postgres_context():
+    session = SessionLocal()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
 
 
-# type alias needed so importing in another file doesn't cause IDE to flag an error
-db_dependency: type[Annotated[Session, Depends(get_db)]] = Annotated[
-    Session, Depends(get_db)
-]
+@asynccontextmanager
+async def redis_context(host: str, port: int, decode_responses: bool):
+    r = redis.Redis(host=host, port=port, decode_responses=decode_responses)
+    try:
+        yield r
+    finally:
+        await r.close()

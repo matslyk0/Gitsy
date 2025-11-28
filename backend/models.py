@@ -4,11 +4,14 @@ from sqlalchemy.orm import relationship
 
 from backend.database import Base
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, UniqueConstraint
 
 
 class Repositories(Base):
     __tablename__ = "repositories"
+    __table_args__ = (
+        UniqueConstraint("repo_owner", "repo_name"),
+    )
 
     repo_id = Column(Integer, primary_key=True, index=True)
     repo_owner = Column(String, index=True)
@@ -19,6 +22,9 @@ class Repositories(Base):
 
 class Reports(Base):
     __tablename__ = "reports"
+    __table_args__ = (
+        UniqueConstraint("repo_id"),
+    )
 
     report_id = Column(Integer, primary_key=True, index=True)
     repo_id = Column(Integer, ForeignKey("repositories.repo_id"), index=True)
