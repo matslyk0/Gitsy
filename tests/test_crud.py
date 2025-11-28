@@ -1,135 +1,200 @@
-import backend.crud as crud
-import backend.models as models
-import redis.asyncio as redis
-import asyncio
-import json
 import time
+import asyncio
+import backend.crud as crud
+import backend.analysis_engine as analysis_engine
 
+from backend.database import redis_context
+from backend.models import Reports
 from datetime import datetime, timezone
 
 # --------------------------------- Integration Tests ---------------------------------
 
-def test_create_postgres_report(db_test_session) -> None:
+
+def test_create_and_get_postgres_report(db_test_session):
+    """Tests if crud.create_postgres_report and crud.get_postgres_report works.
+
+    Args:
+        db_test_session: a session with the testing database.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
     repo_url = "https://github.com/matslyk0/Gitsy"
-    db = db_test_session
-    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
-    assert isinstance(report_id, int)
+    report = asyncio.run(analysis_engine.create_report(repo_url))
 
+    session = db_test_session
+    asyncio.run(crud.create_postgres_report(repo_url, report, session))
+    postgres_report = crud.get_postgres_report(repo_url, session)
 
-def test_get_postgres_report_id(db_test_session) -> None:
-    repo_url = "https://github.com/matslyk0/Gitsy"
-    db = db_test_session
-    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
-    report_id_from_func = crud.get_postgres_report_id(repo_url, db)
-
-    assert report_id_from_func == report_id
-
-
-def test_get_postgres_report(db_test_session) -> None:
-    repo_url = "https://github.com/matslyk0/Gitsy"
-    db = db_test_session
-    report_id = asyncio.run(crud.create_postgres_report(repo_url, db))
-    db_report = crud.get_postgres_report(report_id, db)
-    assert db_report.report_id == report_id
+    assert isinstance(postgres_report, Reports)
 
 
 def test_update_postgres_report(db_test_session) -> None:
-    # make a mock database report
-    db = db_test_session
-    report = models.Reports(
-        commit_frequency=0,
-        code_churn={},
-        issues_close_time=0,
-        pulls_close_time=0
-    )
-    db.add(report)
-    db.commit()
-    db.refresh(report)
+    """Tests if crud.update_postgres_report works.
+
+    Args:
+        db_test_session: a session with the testing database.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
+    example_report = {
+        "commit_frequency": {
+            "status_code": 200,
+            "data": 30.1,
+            "error_name": None,
+            "error_message": None,
+        }
+    }
+
+    postgres_report = Reports(**example_report)
+    session = db_test_session
+    session.add(postgres_report)
+    session.commit()
+    session.refresh(postgres_report)
+
+    modified_report = {
+        "commit_frequency": {
+            "status_code": 200,
+            "data": 11.22,
+            "error_name": None,
+            "error_message": None,
+        }
+    }
 
     repo_url = "https://github.com/matslyk0/Gitsy"
-    asyncio.run(crud.update_postgres_report(repo_url, report, db))
-
-    assert report.commit_frequency != 0
-    assert report.code_churn != {}
-    assert report.issues_close_time != 0
-    assert report.pulls_close_time != 0
+    asyncio.run(crud.update_postgres_report(repo_url, modified_report, session))
+    postgres_report = crud.get_postgres_report(repo_url, session)
+    assert postgres_report.commit_frequency == modified_report["commit_frequency"]
 
 
-def test_create_redis_report() -> None:
-    async def test(): # workaround since async redis complicates things with sync pytest
-        db_report = models.Reports(
+def test_create_and_get_redis_report() -> None:
+    """Tests if crud.create_redis_report and crud.get_redis_report works.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        AssertionError: if the test fails.
+    """
+    async def redis_test():  # sync/async workaround until async pytest is implemented
+
+        # simulating a complete postgres report
+        postgres_report = Reports(
             report_id=999,
             repo_id=999,
-            commit_frequency=4.1111,
-            code_churn={'additions': 89, 'deletions': 1, 'total': 90, 'net': 88},
-            issues_close_time=5.11111,
-            pulls_close_time=6.1111111111,
+            commit_frequency={
+                "status_code": 200,
+                "data": 4.1111,
+                "error_name": None,
+                "error_message": None,
+            },
+            code_churn={
+                "status_code": 200,
+                "data": {"additions": 89, "deletions": 1, "total": 90, "net": 88},
+                "error_name": None,
+                "error_message": None,
+            },
+            issues_close_time={
+                "status_code": 200,
+                "data": 5.11111,
+                "error_name": None,
+                "error_message": None,
+            },
+            pulls_close_time={
+                "status_code": 200,
+                "data": 6.1111111111,
+                "error_name": None,
+                "error_message": None,
+            },
             created_at=datetime.now(timezone.utc),
-            last_updated=datetime.now(timezone.utc)
+            last_updated=datetime.now(timezone.utc),
         )
 
-        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
-        redis_report_id = "admin:test"
-        await crud.create_redis_report(db_report, redis_report_id, r, ttl=10)
-        redis_report = await crud.get_redis_report(redis_report_id, r)
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
+            redis_report_id = "admin:test"
+            await crud.create_redis_report(postgres_report, redis_report_id, r, ttl=10)
+            redis_report = await crud.get_redis_report(redis_report_id, r)
 
-        try:
             assert redis_report != {}
-            assert redis_report["report_id"] == db_report.report_id
-            assert redis_report["repo_id"] == db_report.repo_id
-            assert redis_report["commit_frequency"] == db_report.commit_frequency
-            assert redis_report["code_churn"] == db_report.code_churn
-            assert redis_report["issues_close_time"] == db_report.issues_close_time
-            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
-            assert redis_report["created_at"] == db_report.created_at
-            assert redis_report["last_updated"] == db_report.last_updated
+            assert redis_report["report_id"] == postgres_report.report_id
+            assert redis_report["repo_id"] == postgres_report.repo_id
+            assert redis_report["commit_frequency"] == postgres_report.commit_frequency
+            assert redis_report["code_churn"] == postgres_report.code_churn
+            assert (
+                redis_report["issues_close_time"] == postgres_report.issues_close_time
+            )
+            assert redis_report["pulls_close_time"] == postgres_report.pulls_close_time
+            assert redis_report["created_at"] == postgres_report.created_at
+            assert redis_report["last_updated"] == postgres_report.last_updated
+
             time.sleep(11)
             redis_report = await crud.get_redis_report(redis_report_id, r)
             assert redis_report == {}
-        finally:
-            await r.close()
 
-    asyncio.run(test())
+    asyncio.run(redis_test())
 
 
 def test_update_redis_report() -> None:
-    async def test(): # workaround since async redis complicates things with sync pytest
-        db_report = models.Reports(
-            report_id=999,
-            repo_id=999,
-            commit_frequency=4.1111,
-            code_churn={'additions': 89, 'deletions': 1, 'total': 90, 'net': 88},
-            issues_close_time=5.11111,
-            pulls_close_time=6.1111111111,
-            created_at=datetime.now(timezone.utc),
-            last_updated=datetime.now(timezone.utc)
-        )
+    """Tests if crud.update_redis_report works.
 
-        r = redis.Redis(host="redis-test-db", port=6379, decode_responses=True)
-        redis_report_id = "admin:test"
-        await crud.create_redis_report(db_report, redis_report_id, r, ttl=100)
+    Returns:
+        Nothing.
 
-        db_report.commit_frequency = 4.44444
-        db_report.code_churn = {'additions': 10, 'deletions': 10, 'total': 20, 'net': 0}
-        db_report.issues_close_time = 300000
-        db_report.pulls_close_time = 40000000
-        db_report.last_updated = datetime.now(timezone.utc)
+    Raises:
+        AssertionError: if the test fails.
 
-        await crud.update_redis_report(redis_report_id, db_report, r, ttl=10)
-        redis_report = await crud.get_redis_report(redis_report_id, r)
+    """
+    postgres_report = Reports(
+        report_id=999,
+        repo_id=999,
+        commit_frequency={
+            "status_code": 200,
+            "data": 4.1111,
+            "error_name": None,
+            "error_message": None,
+        },
+        code_churn={
+            "status_code": 200,
+            "data": {"additions": 89, "deletions": 1, "total": 90, "net": 88},
+            "error_name": None,
+            "error_message": None,
+        },
+        issues_close_time={
+            "status_code": 200,
+            "data": 5.11111,
+            "error_name": None,
+            "error_message": None,
+        },
+        pulls_close_time={
+            "status_code": 200,
+            "data": 6.1111111111,
+            "error_name": None,
+            "error_message": None,
+        },
+        created_at=datetime.now(timezone.utc),
+        last_updated=datetime.now(timezone.utc),
+    )
 
-        try:
+    async def redis_test():  # sync/async workaround until async pytest is implemented
+        host = "redis-test-db"
+        async with redis_context(host=host, port=6379, decode_responses=True) as r:
+            await crud.create_redis_report(postgres_report, "admin:test", r, ttl=10)
+
+            postgres_report.commit_frequency["data"] = 494
+            await crud.update_redis_report("admin:test", postgres_report, r, ttl=10)
+            redis_report = await crud.get_redis_report("admin:test", r)
+
             assert redis_report != {}
-            assert redis_report["commit_frequency"] == db_report.commit_frequency
-            assert redis_report["code_churn"] == db_report.code_churn
-            assert redis_report["issues_close_time"] == db_report.issues_close_time
-            assert redis_report["pulls_close_time"] == db_report.pulls_close_time
-            assert redis_report["last_updated"] == db_report.last_updated
+            assert redis_report["commit_frequency"]["data"] == 494
             time.sleep(11)
-            redis_report = await crud.get_redis_report(redis_report_id, r)
+            redis_report = await crud.get_redis_report("admin:test", r)
             assert redis_report == {}
-        finally:
-            await r.close()
-
-    asyncio.run(test())
-
+    asyncio.run(redis_test())
