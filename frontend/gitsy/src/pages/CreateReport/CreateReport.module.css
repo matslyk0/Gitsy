@@ -1,6 +1,6 @@
 .createReportHeader {
   color: white;
-  border: 1px solid white; /* for debugging */
+  border: 0px solid white; /* for debugging */
   font:
     4em Helvetica,
     sans-serif;
@@ -8,7 +8,7 @@
 }
 
 .reportForm {
-  border: 1px solid white; /* for debugging */
+  border: 0px solid white; /* for debugging */
   display: flex;
   height: 40px;
   justify-content: center;
@@ -40,7 +40,7 @@
 
 .reportDisplay {
   align-items: stretch;
-  border: 1px solid white /* for debugging */;
+  border: 0px solid white /* for debugging */;
   color: white;
   display: flex;
   flex-direction: column;
@@ -53,17 +53,9 @@
   width: 600px;
 }
 
-.reportStatus {
-  border: 1px solid white; /* for debugging */
-  color: white;
-  font:
-    2em Helvetica,
-    sans-serif;
-}
-
 .main {
   align-items: center;
-  border: 1px solid white; /* for debugging */
+  border: 0px solid white; /* for debugging */
   display: flex;
   flex: 1;
   flex-direction: column;

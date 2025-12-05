@@ -1,8 +1,8 @@
-import styles from "./CreateReport.module.css";
-
 import Banner from "../../components/Banner/Banner.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
 import Card from "../../components/Card/Card.jsx";
+import styles from "./CreateReport.module.css";
+import loadingWheel from "../../assets/bars.svg";
 
 import axios from "axios";
 import React, { useState } from "react";
@@ -18,6 +18,7 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
         value={url}
       />
       <button onClick={onAnalyse}>Analyse</button>
+      {disabled && <img src={loadingWheel} />}
     </div>
   );
 }
@@ -101,12 +102,6 @@ export default function CreateReport() {
           onAnalyse={onAnalyse}
           disabled={isLoading}
         />
-
-        <div>
-          {isLoading && (
-            <h2 className={styles.reportStatus}> Processing... </h2>
-          )}
-        </div>
 
         <ReportDisplay report={report} />
       </main>
