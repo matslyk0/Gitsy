@@ -7,7 +7,7 @@
   text-align: center;
 }
 
-.createReportForm {
+.reportForm {
   border: 0px solid white; /* for debugging */
   display: flex;
   height: 40px;
@@ -18,7 +18,7 @@
   padding: 0px;
   width: 500px;
 }
-.createReportForm input {
+.reportForm input {
   border: 3px solid aquamarine;
   border-radius: 15px;
   flex: 0.8;
@@ -27,11 +27,11 @@
     1.25em Helvetica,
     sans-serif;
 }
-.createReportForm input:focus {
+.reportForm input:focus {
   border: 3px solid aqua;
   outline: none;
 }
-.createReportForm button {
+.reportForm button {
   border: 3px solid aquamarine;
   border-radius: 15px;
   flex: 0.2;
@@ -51,4 +51,13 @@
   margin-top: 30px;
   max-width: 90%;
   width: 600px;
+}
+
+.main {
+  align-items: center;
+  border: 0px solid white; /* for debugging */
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
 }
