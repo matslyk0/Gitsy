@@ -29,7 +29,7 @@ function ReportDisplay({ report }) {
   const commitFrequency =
     report.commit_frequency.status_code === 200
       ? `On average, this repository 
-        has receives a commit every ${report.commit_frequency.data.toFixed(3)} hours.`
+        receives a commit every ${report.commit_frequency.data.toFixed(3)} hours.`
       : report.commit_frequency.error_message;
 
   const issuesCloseTime =
