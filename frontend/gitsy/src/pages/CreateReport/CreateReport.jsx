@@ -7,14 +7,22 @@ import Card from "../../components/Card/Card.jsx";
 import axios from "axios";
 import React, { useState } from "react";
 
-function CreateReportForm({ onClick }) {
+function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   return (
-    <div className={styles.createReportForm}>
-      <input type="text" id="urlInput" placeholder="Enter github repo url" />
-      <button onClick={onClick}>Analyse</button>
+    <div className={styles.reportForm}>
+      <input
+        disabled={disabled}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="Enter a GitHub Repo URL"
+        type="text"
+        value={url}
+      />
+      <button onClick={onAnalyse}>Analyse</button>
     </div>
   );
 }
+
+function FormatMetric(metric) {}
 
 function ReportDisplay({ report }) {
   const commitFrequency = (() => {
@@ -89,40 +97,51 @@ function ReportDisplay({ report }) {
 }
 
 export default function CreateReport() {
-  const mainStyle = {
-    alignItems: "center",
-    border: "0px solid white" /* for debugging */,
-    display: "flex",
-    flexDirection: "column",
-    flex: "1",
-    justifyContent: "center",
-  };
-
+  const [url, setUrl] = useState("");
   const [report, setReport] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  async function CallAnalysisFunction() {
-    const enteredUrl = document.getElementById("urlInput").value;
-    document.getElementById("urlInput").value = "";
-    const params = { repo_url: enteredUrl };
+  async function onAnalyse() {
+    if (!url) return;
 
-    const baseUrl =
-      import.meta.env.MODE === "development" ? "http://localhost:8000" : "/api";
-    const endpointUrl = `${baseUrl}/create-report/generate`;
+    setIsLoading(true);
+    const params = { repo_url: url };
+    setUrl("");
+
+    const apiUrl =
+      import.meta.env.MODE === "development"
+        ? "http://localhost:8000/create-report/generate"
+        : "/api/create-report/generate";
 
     try {
-      const response = await axios.get(endpointUrl, { params: params });
+      const response = await axios.get(apiUrl, { params: params });
       setReport(response.data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <>
       <Banner />
-      <main style={mainStyle}>
+      <main className={styles.main}>
         <h1 className={styles.createReportHeader}>Create a Report Here</h1>
-        <CreateReportForm onClick={CallAnalysisFunction} />
+
+        <ReportForm
+          url={url}
+          setUrl={setUrl}
+          onAnalyse={onAnalyse}
+          disabled={isLoading}
+        />
+
+        <div>
+          {isLoading && (
+            <h2 className={styles.reportStatus}> Processing... </h2>
+          )}
+        </div>
+
         <ReportDisplay report={report} />
       </main>
       <Footer />
