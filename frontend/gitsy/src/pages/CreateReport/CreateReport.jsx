@@ -22,76 +22,50 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   );
 }
 
-function FormatMetric(metric) {}
+function FormatMetric(metric) {
+  const { status_code, data, error_name, error_message } = metric;
+
+  if (status_code !== 200) return error_message;
+
+  // do not round the metric if it is an object, e.g. code churn
+  if (typeof data === "object") return data;
+
+  return data.toFixed(3);
+}
 
 function ReportDisplay({ report }) {
-  const commitFrequency = (() => {
-    if (!report) return null;
+  if (!report) return null;
 
-    const { status_code, data, error_name, error_message } =
-      report.commit_frequency;
-
-    if (status_code === 200) {
-      return `${data.toFixed(3)} hrs`;
-    } else {
-      console.log(`${status_code} - ${error_name} - ${error_message}`);
-      return error_message;
-    }
-  })();
-
-  const issuesCloseTime = (() => {
-    if (!report) return null;
-
-    const { status_code, data, error_name, error_message } =
-      report.issues_close_time;
-
-    if (status_code === 200) {
-      return `${data.toFixed(3)} hrs`;
-    } else {
-      console.log(`${status_code} - ${error_name} - ${error_message}`);
-      return error_message;
-    }
-  })();
-
-  const pullsCloseTime = (() => {
-    if (!report) return null;
-
-    const { status_code, data, error_name, error_message } =
-      report.pulls_close_time;
-
-    if (status_code === 200) {
-      return `${data.toFixed(3)} hrs`;
-    } else {
-      console.log(`${status_code} - ${error_name} - ${error_message}`);
-      return error_message;
-    }
-  })();
-
-  const codeChurn = (() => {
-    if (!report) return null;
-
-    const { status_code, data, error_name, error_message } = report.code_churn;
-
-    if (status_code === 200) {
-      const { additions, deletions, total, net } = data;
-      return `
-        Additions: ${additions},
-        Deletions: ${deletions},
-        Total: ${total},
-        Net: ${net}
-        `;
-    } else {
-      console.log(`${status_code} - ${error_name} - ${error_message}`);
-      return error_message;
-    }
-  })();
+  const commitFrequency = FormatMetric(report.commit_frequency);
+  const issuesCloseTime = FormatMetric(report.issues_close_time);
+  const pullsCloseTime = FormatMetric(report.pulls_close_time);
+  const codeChurn = FormatMetric(report.code_churn);
 
   return (
     <div className={styles.reportDisplay}>
-      <Card metricName="Commit Frequency" metricData={commitFrequency} />
-      <Card metricName="Issues Close Time" metricData={issuesCloseTime} />
-      <Card metricName="Pulls Close Time" metricData={pullsCloseTime} />
-      <Card metricName="Code Churn" metricData={codeChurn} />
+      <Card
+        metricName="Commit Frequency"
+        metricData={`On average, this repository has 
+          a commit every ${commitFrequency} hours.`}
+      />
+      <Card
+        metricName="Issues Close Time"
+        metricData={`On average, this repository closes 
+          Issues every ${issuesCloseTime} hours.`}
+      />
+      <Card
+        metricName="Pulls Close Time"
+        metricData={`On average, this repository closes 
+          Pull Requests every ${pullsCloseTime} hours.`}
+      />
+      <Card
+        metricName="Code Churn"
+        metricData={`This repository has 
+          ${codeChurn.additions} additions, 
+          ${codeChurn.deletions} deletions, 
+          totaling at ${codeChurn.total} line changes, 
+          with a net of ${codeChurn.net} lines.`}
+      />
     </div>
   );
 }
