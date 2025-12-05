@@ -22,50 +22,42 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   );
 }
 
-function FormatMetric(metric) {
-  const { status_code, data, error_name, error_message } = metric;
-
-  if (status_code !== 200) return error_message;
-
-  // do not round the metric if it is an object, e.g. code churn
-  if (typeof data === "object") return data;
-
-  return data.toFixed(3);
-}
-
 function ReportDisplay({ report }) {
   if (!report) return null;
 
-  const commitFrequency = FormatMetric(report.commit_frequency);
-  const issuesCloseTime = FormatMetric(report.issues_close_time);
-  const pullsCloseTime = FormatMetric(report.pulls_close_time);
-  const codeChurn = FormatMetric(report.code_churn);
+  const commitFrequency =
+    report.commit_frequency.status_code === 200
+      ? `On average, this repository 
+        has receives a commit every ${report.commit_frequency.data.toFixed(3)} hours.`
+      : report.commit_frequency.error_message;
+
+  const issuesCloseTime =
+    report.issues_close_time.status_code === 200
+      ? `On average, this repository 
+        closes an Issue every ${report.issues_close_time.data.toFixed(3)} hours.`
+      : report.issues_close_time.error_message;
+
+  const pullsCloseTime =
+    report.pulls_close_time.status_code === 200
+      ? `On average, this repository 
+        closes a Pull Request every ${report.pulls_close_time.data.toFixed(3)} hours.`
+      : report.pulls_close_time.error_message;
+
+  const codeChurn =
+    report.code_churn.status_code === 200
+      ? `This repository has 
+          ${report.code_churn.data.additions} additions, 
+          ${report.code_churn.data.deletions} deletions, 
+          totaling at ${report.code_churn.data.total} line changes, 
+          with a net of ${report.code_churn.data.net} lines.`
+      : report.code_churn.error_message;
 
   return (
     <div className={styles.reportDisplay}>
-      <Card
-        metricName="Commit Frequency"
-        metricData={`On average, this repository has 
-          a commit every ${commitFrequency} hours.`}
-      />
-      <Card
-        metricName="Issues Close Time"
-        metricData={`On average, this repository closes 
-          Issues every ${issuesCloseTime} hours.`}
-      />
-      <Card
-        metricName="Pulls Close Time"
-        metricData={`On average, this repository closes 
-          Pull Requests every ${pullsCloseTime} hours.`}
-      />
-      <Card
-        metricName="Code Churn"
-        metricData={`This repository has 
-          ${codeChurn.additions} additions, 
-          ${codeChurn.deletions} deletions, 
-          totaling at ${codeChurn.total} line changes, 
-          with a net of ${codeChurn.net} lines.`}
-      />
+      <Card metricName="Commit Frequency" metricData={commitFrequency} />
+      <Card metricName="Issues Close Time" metricData={issuesCloseTime} />
+      <Card metricName="Pulls Close Time" metricData={pullsCloseTime} />
+      <Card metricName="Code Churn" metricData={codeChurn} />
     </div>
   );
 }
