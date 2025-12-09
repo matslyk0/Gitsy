@@ -1,22 +1,21 @@
 .card {
-  background-color: darkseagreen;
+  background-color: rgb(90, 90, 150);
   border: 0px solid white; /* for debugging */
   border-radius: 10px;
-  box-shadow: 0px 0px 0px rgba(255, 255, 255, 0.5);
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-evenly;
   margin: 5px;
-  padding: 10px;
+  min-height: 0;
+  padding: 20px;
 }
-
-.card h2 {
+.card h1 {
   border: 0px solid white; /* for debugging */
   margin: 0;
 }
-
 .card div {
   border: 0px solid white; /* for debugging */
-  overflow: hidden;
+  font-family: Helvetica, sans-serif;
+  font-size: clamp(1em, 3vw, 2em);
 }

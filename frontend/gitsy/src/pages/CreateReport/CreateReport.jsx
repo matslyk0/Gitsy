@@ -5,7 +5,7 @@ import styles from "./CreateReport.module.css";
 import loadingWheel from "../../assets/bars.svg";
 
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 
 function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   return (
@@ -23,7 +23,7 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   );
 }
 
-function ReportDisplay({ report }) {
+function ReportDisplay({ report, setReport, ownerAndName }) {
   if (!report) return null;
 
   const commitFrequency =
@@ -55,6 +55,11 @@ function ReportDisplay({ report }) {
 
   return (
     <div className={styles.reportDisplay}>
+      <div className={styles.reportHeader}>
+        <h1>{ownerAndName} Activity Report</h1>
+        <button onClick={() => setReport(null)}>Create Another</button>
+      </div>
+
       <Card metricName="Commit Frequency" metricData={commitFrequency} />
       <Card metricName="Issues Close Time" metricData={issuesCloseTime} />
       <Card metricName="Pulls Close Time" metricData={pullsCloseTime} />
@@ -67,11 +72,13 @@ export default function CreateReport() {
   const [url, setUrl] = useState("");
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [ownerAndName, setOwnerAndName] = useState("owner/name");
 
   async function onAnalyse() {
     if (!url) return;
 
     setIsLoading(true);
+    setOwnerAndName(url.replace("https://github.com/", ""));
     const params = { repo_url: url };
     setUrl("");
 
@@ -94,16 +101,24 @@ export default function CreateReport() {
     <>
       <Banner />
       <main className={styles.main}>
-        <h1 className={styles.createReportHeader}>Create a Report Here</h1>
+        {!report && (
+          <h1 className={styles.createReportHeader}>Create a Report Here</h1>
+        )}
 
-        <ReportForm
-          url={url}
-          setUrl={setUrl}
-          onAnalyse={onAnalyse}
-          disabled={isLoading}
-        />
-
-        <ReportDisplay report={report} />
+        {!report ? (
+          <ReportForm
+            url={url}
+            setUrl={setUrl}
+            onAnalyse={onAnalyse}
+            disabled={isLoading}
+          />
+        ) : (
+          <ReportDisplay
+            report={report}
+            setReport={setReport}
+            ownerAndName={ownerAndName}
+          />
+        )}
       </main>
       <Footer />
     </>

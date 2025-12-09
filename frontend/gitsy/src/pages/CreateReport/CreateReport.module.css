@@ -7,6 +7,24 @@
   text-align: center;
 }
 
+.reportDisplay {
+  align-items: stretch;
+  background-color: rgb(60, 60, 100);
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font:
+    1em Helvetica,
+    sans-serif;
+  height: 90%;
+  justify-content: space-between;
+  margin-top: 30px;
+  max-height: 800px;
+  max-width: 1500px;
+  width: 90%;
+}
+
 .reportForm {
   border: 0px solid white; /* for debugging */
   display: flex;
@@ -14,9 +32,15 @@
   justify-content: center;
   margin: 3px;
   max-height: 30%;
-  max-width: 100%;
+  max-width: 90%;
   padding: 0px;
   width: 500px;
+}
+.reportForm button {
+  border: 3px solid aquamarine;
+  border-radius: 15px;
+  flex: 0.2;
+  margin-left: 2px;
 }
 .reportForm input {
   border: 3px solid aquamarine;
@@ -31,26 +55,30 @@
   border: 3px solid aqua;
   outline: none;
 }
-.reportForm button {
-  border: 3px solid aquamarine;
-  border-radius: 15px;
-  flex: 0.2;
-  margin-left: 2px;
-}
 
-.reportDisplay {
-  align-items: stretch;
-  border: 0px solid white /* for debugging */;
-  color: white;
+.reportHeader {
+  align-items: center;
   display: flex;
-  flex-direction: column;
-  font:
-    1em Helvetica,
-    sans-serif;
   justify-content: space-between;
-  margin-top: 30px;
-  max-width: 90%;
-  width: 600px;
+  padding: 15px;
+}
+.reportHeader button {
+  align-items: center;
+  background-color: rgb(0, 179, 255);
+  border: 2px solid rgb(0, 179, 255);
+  border-radius: 20px;
+  color: rgb(0, 0, 80);
+  cursor: pointer;
+  display: flex;
+  font:
+    1.75em Helvetica,
+    sans-serif;
+  height: 100px;
+  justify-content: center;
+  width: 200px;
+}
+.reportHeader button:hover {
+  border: 2px solid white;
 }
 
 .main {
