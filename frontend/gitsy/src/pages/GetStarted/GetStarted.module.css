@@ -1,25 +1,39 @@
-.introduction {
+.answer {
+  border: 0px solid white; /* for debugging */
+  color: white;
+  font-size: 1.25em;
+  font-family: Helvetica;
+  line-height: 150%;
+}
+
+.getStarted {
   align-items: center;
   border: 0px solid white; /* for debugging */
   display: flex;
   flex-direction: column;
   justify-content: center;
   max-width: 600px;
+  padding: 15px;
 }
-.introduction h1 {
-  color: aquamarine;
+
+.header {
+  color: white;
   text-align: center;
   font: 2em Verdana;
 }
-.introduction p {
-  color: white;
-  font:
-    1.25em Helvetica,
-    sans-serif;
+
+.main {
+  align-items: center;
+  border: 0px solid white; /* for debugging */
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
 }
-.introduction h2 {
+
+.question {
   color: white;
-  font:
-    1.5em Helvetica,
-    sans-serif;
+  font-size: 1.25em;
+  font-family: Helvetica;
+  line-height: 150%;
 }
