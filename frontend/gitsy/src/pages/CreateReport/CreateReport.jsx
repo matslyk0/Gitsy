@@ -17,8 +17,7 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
         type="text"
         value={url}
       />
-      <button onClick={onAnalyse}>Analyse</button>
-      {disabled && <img src={loadingWheel} />}
+      <button onClick={onAnalyse}>analyse</button>
     </div>
   );
 }
@@ -106,12 +105,17 @@ export default function CreateReport() {
         )}
 
         {!report ? (
-          <ReportForm
-            url={url}
-            setUrl={setUrl}
-            onAnalyse={onAnalyse}
-            disabled={isLoading}
-          />
+          <>
+            <ReportForm
+              url={url}
+              setUrl={setUrl}
+              onAnalyse={onAnalyse}
+              disabled={isLoading}
+            />
+            <div className={styles.loadingWheelDiv}>
+              {isLoading && <img src={loadingWheel} />}
+            </div>
+          </>
         ) : (
           <ReportDisplay
             report={report}
