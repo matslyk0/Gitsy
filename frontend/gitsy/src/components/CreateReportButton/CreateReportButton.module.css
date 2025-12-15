@@ -31,7 +31,7 @@
   left: 0;
   position: absolute;
   top: 0;
-  transition-duration: 0.25s, 0.25s, 0.25s;
+  transition-duration: 0.2s, 0.2s, 0.2s;
   transition-property: width, height, border-color;
   transition-timing-function: ease-in-out;
   width: 0px;
@@ -45,7 +45,7 @@
   height: 0px;
   position: absolute;
   right: 0;
-  transition-duration: 0.25s, 0.25s, 0.25s;
+  transition-duration: 0.2s, 0.2s, 0.2s;
   transition-property: width, height, border-color;
   transition-timing-function: ease-in-out;
   width: 0px;
