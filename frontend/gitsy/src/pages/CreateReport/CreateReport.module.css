@@ -3,6 +3,7 @@
   border: 0px solid white; /* for debugging */
   font-size: 4em;
   font-family: Helvetica, sans-serif;
+  padding: 20px;
   text-align: center;
 }
 
@@ -74,6 +75,7 @@
 
 .reportHeader {
   align-items: center;
+  container-type: inline-size;
   display: flex;
   justify-content: space-between;
   padding: 15px;
@@ -86,7 +88,7 @@
   color: rgb(0, 0, 80);
   cursor: pointer;
   display: flex;
-  font-size: 1.75em;
+  font-size: clamp(1.5em, 3cqi, 1.75em);
   font-family: Helvetica, sans-serif;
   height: 100px;
   justify-content: center;
