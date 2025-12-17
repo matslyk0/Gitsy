@@ -8,4 +8,12 @@
 }
 .footer p {
   color: white;
+  font-family: Helvetica, sans-serif;
+}
+.footer p a {
+  color: white;
+  text-decoration: none;
+}
+.footer p a:hover {
+  text-decoration: underline;
 }

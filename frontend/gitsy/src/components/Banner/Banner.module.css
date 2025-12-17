@@ -1,9 +1,10 @@
 .banner {
   align-items: center;
-  border: 0px solid red; /* for debugging */
+  background-color: rgb(60, 60, 100);
+  border: 0px solid white; /* for debugging */
   display: flex;
   justify-content: space-between;
-  padding: 0px;
+  padding: 5px;
 }
 
 .gitsyLogo {
@@ -15,38 +16,5 @@
 }
 .gitsyLogoPic {
   border-radius: 35%;
-  height: 40px;
-}
-
-.bannerRight {
-  align-items: center;
-  border: 0px solid red; /* for debugging */
-  display: flex;
-}
-.loginButton {
-  background: transparent;
-  border: 0px solid red; /* for debugging */
-  color: white;
-  cursor: pointer;
-  font: 1em Helvetica;
-  margin-right: 5px;
-  padding: 0px;
-  text-decoration: none;
-}
-.loginButton:hover {
-  color: rgb(0, 255, 221);
-}
-
-.signUpButton {
-  background-color: rgb(255, 255, 255);
-  border: 0px;
-  border-radius: 10px;
-  color: black;
-  cursor: pointer;
-  font: 1em Helvetica;
-  padding: 3px 5px;
-  text-decoration: none;
-}
-.signUpButton:hover {
-  background-color: aquamarine;
+  height: 50px;
 }

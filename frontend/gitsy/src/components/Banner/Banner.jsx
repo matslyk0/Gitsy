@@ -10,33 +10,11 @@ function GitsyLogo() {
   );
 }
 
-function LoginButton() {
-  return (
-    <Link to={"/login"} className={styles.loginButton}>
-      Log in
-    </Link>
-  );
-}
-
-function SignUpButton() {
-  return (
-    <Link to={"/login"} className={styles.signUpButton}>
-      Sign up
-    </Link>
-  );
-}
-
 export default function Banner() {
   return (
     <header>
       <nav className={styles.banner}>
         <GitsyLogo />
-        {/* Here for when accounts get implemented        
-        <div className={styles.bannerRight}>
-          <LoginButton />
-          <SignUpButton />
-        </div>
-        */}
       </nav>
     </header>
   );
