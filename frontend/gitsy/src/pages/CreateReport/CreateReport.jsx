@@ -3,6 +3,7 @@ import Footer from "../../components/Footer/Footer.jsx";
 import Card from "../../components/Card/Card.jsx";
 import styles from "./CreateReport.module.css";
 import loadingWheel from "../../assets/bars.svg";
+import processReport from "../../assets/process-svgrepo-com.svg";
 
 import axios from "axios";
 import { useState } from "react";
@@ -17,7 +18,9 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
         type="text"
         value={url}
       />
-      <button onClick={onAnalyse}>analyse</button>
+      <button onClick={onAnalyse}>
+        <img src={processReport} />
+      </button>
     </div>
   );
 }
