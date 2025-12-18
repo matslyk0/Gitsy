@@ -26,8 +26,3 @@ class InsufficientPullsError(Exception):
 class RepoTooLargeError(Exception):
     status_code = 413
     error_message = "Repository must be under 10,000 commits."
-
-
-class TimeOutOfBoundsError(Exception):
-    status_code = 422
-    error_message = "Provided timestamps are unprocessable."
