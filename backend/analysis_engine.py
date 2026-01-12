@@ -31,13 +31,18 @@ async def get_commit_frequency(repo_url: str) -> float:
     """
     commits = await github_client.get_commits(repo_url)
 
-    total_commits = len(commits)
-    if total_commits < 2:
+    if len(commits) < 2:
         raise InsufficientCommitsError()
+
+    first_timestamp = commits[-1]["commit"]["author"]["date"]
+    first_timestamp = analysis_helpers.parse_timestamp(first_timestamp)
+
+    latest_timestamp = commits[0]["commit"]["author"]["date"]
+    latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
 
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
-    return total_hours / total_commits
+    return total_hours / len(commits)
 
 
 async def get_code_churn(repo_url: str) -> dict:
@@ -73,7 +78,7 @@ async def get_code_churn(repo_url: str) -> dict:
     total = additions + deletions
     net = additions - deletions
 
-    # the contributors endpoint still returns status 200 even if the repo is too large
+    # if the repo is over 10,000 commits, the endpoint will have returned empty data
     if commits >= 10000:
         raise RepoTooLargeError()
 
