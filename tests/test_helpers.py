@@ -38,5 +38,5 @@ def test_parse_url_with_target() -> None:
 
 def test_get_owner_and_response() -> None:
     repo_url = "https://github.com/matslyk0/Gitsy"
-    result = helpers.get_owner_and_reponame(repo_url)
+    result = helpers.get_owner_and_repo(repo_url)
     assert result == ("matslyk0", "Gitsy")

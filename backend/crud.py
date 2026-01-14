@@ -2,12 +2,10 @@ import json
 import redis.asyncio as redis
 import backend.helpers as helpers
 import backend.analysis_helpers as analysis_helpers
-
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from backend.models import Repositories, Reports
-
 
 # <<< postgres operations >>>
 
@@ -26,7 +24,7 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
         int: The id of the report in postgres.
     """
 
-    repo_owner, repo_name = helpers.get_owner_and_reponame(repo_url)
+    repo_owner, repo_name = helpers.get_owner_and_repo(repo_url)
     stmt_repo = (
         insert(Repositories)
         .values(repo_owner=repo_owner, repo_name=repo_name)
@@ -51,7 +49,7 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
 
 
 def get_postgres_report(repo_url: str, session: Session) -> Reports | None:
-    owner, repo_name = helpers.get_owner_and_reponame(repo_url)
+    owner, repo_name = helpers.get_owner_and_repo(repo_url)
 
     repo_id = (
         session.query(Repositories.repo_id)
@@ -159,5 +157,5 @@ async def update_redis_report(
 
 # TODO: move or get rid of this
 def get_redis_report_id(repo_url) -> str:
-    owner, repo_name = helpers.get_owner_and_reponame(repo_url)
+    owner, repo_name = helpers.get_owner_and_repo(repo_url)
     return f"{owner}:{repo_name}"

@@ -26,16 +26,25 @@ def parse_data(data: list[dict] | dict | None) -> list[dict]:
     return data
 
 
-def get_owner_and_reponame(repo_url: str) -> tuple:
-    owner_and_repo = repo_url.removeprefix("https://github.com/")
-    owner, _, repo_name = owner_and_repo.partition("/")
+def get_owner_and_repo(repo_url: str) -> tuple:
+    """Extracts the owner name and repository name from a valid url
+        in the format https://github.com/owner/repo
 
-    return owner, repo_name
+    Args:
+        repo_url (str): The URL in the format https://github.com/user/repo.
+
+    Returns:
+        tuple: a tuple in the form (owner, repo)
+    """
+    owner_and_repo = repo_url.removeprefix("https://github.com/")
+    owner, _, repo = owner_and_repo.partition("/")
+
+    return owner, repo
 
 
 def parse_url(repo_url: str, target: str = None):
     """Parses a repository URL into the GitHub API format:
-        https://api.github.com/repos/{owner}/{repo}
+        https://api.github.com/repos/owner/repo
 
     Args:
         repo_url (str): The URL in the format https://github.com/user/repo.
@@ -44,8 +53,8 @@ def parse_url(repo_url: str, target: str = None):
     Returns:
          str: a parsed URL ready to be used to make a call to GitHub's API.
     """
-    owner, repo_name = get_owner_and_reponame(repo_url)
-    url = f"https://api.github.com/repos/{owner}/{repo_name}"
+    owner, repo = get_owner_and_repo(repo_url)
+    url = f"https://api.github.com/repos/{owner}/{repo}"
 
     if target is not None:
         url += "/" + target
