@@ -93,11 +93,20 @@ export default function CreateReport() {
       const response = await axios.get(apiUrl, { params: params });
       setReport(response.data);
     } catch (error) {
-      console.error(error);
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            console.warn("Invalid URL.");
+        }
+      } else if (error.request) {
+        console.warn("Check your connection.");
+      } else {
+        console.error("Unknown Error", error.message);
+      }
     } finally {
       setIsLoading(false);
     }
-  }
+  } 
 
   return (
     <>
