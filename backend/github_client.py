@@ -5,14 +5,20 @@ import httpx
 import asyncio
 import backend.helpers as helpers
 
+from fastapi import HTTPException
 from urllib.parse import urlencode
 from backend.exceptions import GitHubAPIError, GitHubTimeOutError
 
-# for script-only testing
-# from dotenv import load_dotenv
-# load_dotenv()
-# import asyncio
-# import json
+"""
+for script-only testing
+"""
+from dotenv import load_dotenv
+
+load_dotenv()
+import asyncio
+import json
+import requests
+
 
 # loaded in docker compose - dev/test: from .env, CI/prod: from GitHub Secrets
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -46,7 +52,7 @@ async def get_paginated_data(
     url = f"{url}?{query_string}"
 
     headers = {
-        "User-Agent": "Gitsy/0.1",
+        "User-Agent": "matslyk0/Gitsy",
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
@@ -159,7 +165,7 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
         GitHubAPIError: If the request to GitHub failed.
     """
     headers = {
-        "User-Agent": "Gitsy/0.1",
+        "User-Agent": "matslyk0/Gitsy",
         "X-GitHub-Api-Version": "2022-11-28",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
     }
@@ -184,3 +190,32 @@ async def get_contributor_history(repo_url: str) -> list[dict]:
             raise GitHubTimeOutError()
         case _:
             raise GitHubAPIError()
+
+
+async def verify_url(repo_url: str) -> None:
+    """Checks if a URL is a repository URL, and if it is valid.
+
+    Args:
+        repo_url (str): a URL of any shape.
+
+    Raises:
+        HTTPException: if the URL is not a valid repository URL
+    """
+    url = repo_url
+
+    if url.startswith("github.com/"):
+        url = "https://" + url
+
+    if not url.startswith("https://github.com/"):
+        raise HTTPException(status_code=404, detail="Invalid URL")
+
+    endpoint = url.removeprefix("https://github.com/")
+    if ("/" not in endpoint) or (endpoint[0] == "/"):
+        raise HTTPException(status_code=404, detail="Invalid URL")
+
+    headers = {"User-Agent": "matslyk0/Gitsy", "X-GitHub-Api-Version": "2022-11-28"}
+    url = helpers.parse_url(url)
+    async with httpx.AsyncClient() as client:
+        response = await client.head(url, headers=headers)
+    if response.status_code != 200:
+        raise HTTPException(status_code=404, detail="Invalid URL")
