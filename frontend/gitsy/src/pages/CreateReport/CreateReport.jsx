@@ -4,9 +4,9 @@ import Card from "../../components/Card/Card.jsx";
 import styles from "./CreateReport.module.css";
 import loadingWheel from "../../assets/bars.svg";
 import processReport from "../../assets/process-svgrepo-com.svg";
-
 import axios from "axios";
 import { useState } from "react";
+import { Toaster, toast } from "sonner";
 
 function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   return (
@@ -96,17 +96,17 @@ export default function CreateReport() {
       if (error.response) {
         switch (error.response.status) {
           case 404:
-            console.warn("Invalid URL.");
+            toast.error("The entered URL is invalid.");
         }
       } else if (error.request) {
-        console.warn("Check your connection.");
+        toast.error("Check your connection.");
       } else {
         console.error("Unknown Error", error.message);
       }
     } finally {
       setIsLoading(false);
     }
-  } 
+  }
 
   return (
     <>
@@ -137,6 +137,7 @@ export default function CreateReport() {
         )}
       </main>
       <Footer />
+      <Toaster richColors />
     </>
   );
 }
