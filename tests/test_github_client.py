@@ -1,6 +1,7 @@
 import pytest
 import asyncio
 import backend.github_client as github_client
+from fastapi import HTTPException
 from backend.exceptions import GitHubAPIError
 
 
@@ -38,3 +39,20 @@ def test_get_contributor_history() -> None:  # Integration Test
     repo_url = "https://github.com/matslyk0/Gitsy"
     contributor_history = asyncio.run(github_client.get_contributor_history(repo_url))
     assert contributor_history
+
+
+def test_verify_url_invalid() -> None:  # Integration Test
+    with pytest.raises(HTTPException):
+        asyncio.run(github_client.verify_url("butter chicken"))
+
+
+def test_verify_url_valid() -> None:  # Integration Test
+    url = "https://github.com/matslyk0/Gitsy"
+    asyncio.run(github_client.verify_url(url))
+    assert True
+
+
+def test_verify_url_partially_valid() -> None:  # Integration Test
+    url = "github.com/matslyk0/Gitsy"
+    asyncio.run(github_client.verify_url(url))
+    assert True
