@@ -137,7 +137,16 @@ export default function CreateReport() {
         )}
       </main>
       <Footer />
-      <Toaster richColors />
+      <Toaster
+        toastOptions={{
+          style: {
+            backgroundColor: "rgb(60, 60, 100)",
+            border: "0px",
+            color: "white",
+            maxWidth: "225px",
+          },
+        }}
+      />
     </>
   );
 }
