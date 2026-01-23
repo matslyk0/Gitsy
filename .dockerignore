@@ -1,0 +1,10 @@
+.idea
+.vscode
+
+frontend/.vite
+frontend/node_modules
+
+backend/venv
+
+**/.pytest_cache
+**/__pycache__

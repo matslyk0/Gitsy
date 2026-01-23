@@ -2,12 +2,13 @@ FROM python:3.12-slim-bullseye
 
 WORKDIR /app
 
-COPY backend/requirements-prod.txt .
-
+# install required modules for production
+COPY backend/requirements-prod.txt /app
 RUN pip install -r requirements-prod.txt
 
 COPY backend /app/backend
 
+# create a user to only read in /app (for security)
 RUN groupadd -r app && useradd -r -g app appuser
 USER appuser
 

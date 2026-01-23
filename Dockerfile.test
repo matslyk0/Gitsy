@@ -2,8 +2,9 @@ FROM python:3.12-slim-bullseye
 
 WORKDIR /app
 
-COPY backend/requirements-dev.txt .
+COPY backend/requirements-dev.txt /app
+
 RUN pip install -r requirements-dev.txt
 
-COPY . .
-
+COPY backend /app/backend
+COPY tests /app/tests
