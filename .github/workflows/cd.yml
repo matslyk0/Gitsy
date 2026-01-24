@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -15,7 +15,7 @@ jobs:
       - name: create backend and frontend images
         run: |
           docker build -f ./frontend/gitsy/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-frontend:latest ./frontend/gitsy 
-          docker build -f ./backend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest .
+          docker build -f ./backend/Dockerfile.prod -t 764475167282.dkr.ecr.eu-north-1.amazonaws.com/gitsy-backend:latest ./backend
 
       - name: verify images
         run: docker images
@@ -54,12 +54,12 @@ jobs:
           port: 22
           script: |
             aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 764475167282.dkr.ecr.eu-north-1.amazonaws.com
-            
+
             cat << EOF > .env
             POSTGRES_PROD_USER=${{ secrets.POSTGRES_PROD_USER }}
             POSTGRES_PROD_PASSWORD=${{ secrets.POSTGRES_PROD_PASSWORD }}
             POSTGRES_PROD_DB=${{ secrets.POSTGRES_PROD_DB }}
             GITHUB_TOKEN=${{ secrets.GIT_HUB_TOKEN }}
             EOF
-            
+
             docker compose -f docker-compose.prod.yml up -d --pull always
