@@ -4,9 +4,9 @@ import Card from "../../components/Card/Card.jsx";
 import styles from "./CreateReport.module.css";
 import loadingWheel from "../../assets/bars.svg";
 import processReport from "../../assets/process-svgrepo-com.svg";
-
 import axios from "axios";
 import { useState } from "react";
+import { Toaster, toast } from "sonner";
 
 function ReportForm({ url, setUrl, onAnalyse, disabled }) {
   return (
@@ -93,7 +93,16 @@ export default function CreateReport() {
       const response = await axios.get(apiUrl, { params: params });
       setReport(response.data);
     } catch (error) {
-      console.error(error);
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            toast.error("The entered URL is invalid.");
+        }
+      } else if (error.request) {
+        toast.error("Check your connection.");
+      } else {
+        console.error("Unknown Error", error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +137,16 @@ export default function CreateReport() {
         )}
       </main>
       <Footer />
+      <Toaster
+        toastOptions={{
+          style: {
+            backgroundColor: "rgb(60, 60, 100)",
+            border: "0px",
+            color: "white",
+            maxWidth: "225px",
+          },
+        }}
+      />
     </>
   );
 }

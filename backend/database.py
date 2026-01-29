@@ -36,4 +36,4 @@ async def redis_context(host: str, port: int, decode_responses: bool):
     try:
         yield r
     finally:
-        await r.close()
+        await r.aclose()

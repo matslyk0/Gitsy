@@ -1,6 +1,6 @@
 import asyncio
 import backend.github_client as github_client
-import backend.analysis_helpers as analysis_helpers
+import backend.helpers as helpers
 
 from datetime import datetime, timedelta
 from backend.exceptions import (
@@ -15,16 +15,12 @@ from backend.exceptions import (
 # import time
 
 
-async def get_commit_frequency(
-    repo_url: str, time_from: datetime = None, time_until: datetime = None
-) -> float:
+async def get_commit_frequency(repo_url: str) -> float:
     """Calculates the average number of hours between commits for a repository.
 
     Args:
         repo_url (str): The URL of the repository in the format
                         https://github.com/owner/repo
-        time_from (datetime): The time to start looking from.
-        time_until (datetime): The time to start looking until.
 
     Returns:
         float: The average number of hours between commits.
@@ -35,33 +31,18 @@ async def get_commit_frequency(
     """
     commits = await github_client.get_commits(repo_url)
 
-    total_commits = len(commits)
-    if total_commits < 2:
+    if len(commits) < 2:
         raise InsufficientCommitsError()
 
-    if time_from:
-        keys = ["commit", "author", "date"]
-        first_timestamp, commits_diff = analysis_helpers.get_first_timestamp(
-            time_from, commits, keys
-        )
-        total_commits -= commits_diff
-    else:
-        first_timestamp = commits[-1]["commit"]["author"]["date"]
-        first_timestamp = analysis_helpers.parse_timestamp(first_timestamp)
+    first_timestamp = commits[-1]["commit"]["author"]["date"]
+    first_timestamp = helpers.parse_timestamp(first_timestamp)
 
-    if time_until:
-        keys = ["commit", "author", "date"]
-        latest_timestamp, commits_diff = analysis_helpers.get_latest_timestamp(
-            time_until, commits, keys
-        )
-        total_commits -= commits_diff
-    else:
-        latest_timestamp = commits[0]["commit"]["author"]["date"]
-        latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
+    latest_timestamp = commits[0]["commit"]["author"]["date"]
+    latest_timestamp = helpers.parse_timestamp(latest_timestamp)
 
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
-    return total_hours / total_commits
+    return total_hours / len(commits)
 
 
 async def get_code_churn(repo_url: str) -> dict:
@@ -97,23 +78,19 @@ async def get_code_churn(repo_url: str) -> dict:
     total = additions + deletions
     net = additions - deletions
 
-    # the contributors endpoint still returns status 200 even if the repo is too large
+    # if the repo is over 10,000 commits, the endpoint will have returned empty data
     if commits >= 10000:
         raise RepoTooLargeError()
 
     return {"additions": additions, "deletions": deletions, "total": total, "net": net}
 
 
-async def get_issues_close_time(
-    repo_url: str, time_from: datetime = None, time_until: datetime = None
-) -> float:
+async def get_issues_close_time(repo_url: str) -> float:
     """Calculates the average number of hours for an issue to be closed.
 
     Args:
         repo_url (str): The URL of the repository in the format
                         https://github.com/owner/repo
-        time_from (datetime): The time to start looking from.
-        time_until (datetime): The time to start looking until.
 
     Returns:
         float: The average number of hours for an issue to be closed.
@@ -125,17 +102,6 @@ async def get_issues_close_time(
     issues = await github_client.get_issues(repo_url)
     if len(issues) == 0:
         raise InsufficientIssuesError()
-
-    if time_from or time_until:
-        # need to sort by "closed_at" before trimming, issues are sorted by "created_at"
-        issues = sorted(issues, key=lambda _: _["closed_at"], reverse=True)
-        keys = ["closed_at"]
-
-        if time_from:
-            # fyi: GitHub's API can't filter by "closed_at", nor can it filter "up to"
-            issues = analysis_helpers.trim_prior_entries(time_from, issues, keys)
-        if time_until:
-            issues = analysis_helpers.trim_leading_entries(time_until, issues, keys)
 
     total_time = 0
     for issue in issues:
@@ -152,16 +118,12 @@ async def get_issues_close_time(
     return total_time / len(issues)
 
 
-async def get_pulls_close_time(
-    repo_url: str, time_from: datetime = None, time_until: datetime = None
-) -> float:
+async def get_pulls_close_time(repo_url: str) -> float:
     """Calculates the average number of hours for a pull request to be merged or closed.
 
     Args:
         repo_url (str): The URL of the repository in the format
                         https://github.com/owner/repo
-        time_from (datetime): The time to start looking from.
-        time_until (datetime): The time to start looking until.
 
     Returns:
         float: The average number of hours for a pull request to be merged or closed.
@@ -173,15 +135,6 @@ async def get_pulls_close_time(
     pulls = await github_client.get_pulls(repo_url)
     if len(pulls) == 0:
         raise InsufficientPullsError()
-
-    if time_from or time_until:
-        # need to sort by "closed_at" before trimming, pulls are sorted by "created_at"
-        pulls = sorted(pulls, key=lambda _: _["closed_at"], reverse=True)
-        keys = ["closed_at"]
-        if time_from:
-            pulls = analysis_helpers.trim_prior_entries(time_from, pulls, keys)
-        if time_until:
-            pulls = analysis_helpers.trim_leading_entries(time_until, pulls, keys)
 
     total_time = 0
     for pull in pulls:
@@ -199,11 +152,22 @@ async def get_pulls_close_time(
 
 
 async def get_last_updated(repo_url: str) -> datetime:
-    """Rudimentary function that checks the last time a repo was updated."""
+    """Obtains the timestamp of the last repository update. (WIP, only checks commits)
+
+    Args:
+        repo_url (str): The URL of the repository in the format
+                        https://github.com/owner/repo
+
+    Returns:
+        datetime: The timestamp of the most recent commit.
+
+    Raises:
+        GitHubAPIError: If the request to GitHub failed.
+    """
     commits = await github_client.get_commits(repo_url)
     latest_commit = commits[0]
     latest_timestamp = latest_commit["commit"]["author"]["date"]
-    return analysis_helpers.parse_timestamp(latest_timestamp)
+    return helpers.parse_timestamp(latest_timestamp)
 
 
 async def create_report(repo_url: str) -> dict:

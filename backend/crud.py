@@ -1,14 +1,11 @@
 import json
 import redis.asyncio as redis
-import backend.github_client as github_client
-import backend.analysis_engine as analysis_engine
-import backend.analysis_helpers as analysis_helpers
-
+import backend.helpers as helpers
+import backend.helpers as helpers
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from backend.models import Repositories, Reports
-
 
 # <<< postgres operations >>>
 
@@ -27,13 +24,15 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
         int: The id of the report in postgres.
     """
 
-    repo_owner, repo_name = github_client.get_owner_and_reponame(repo_url)
+    repo_owner, repo_name = helpers.get_owner_and_repo(repo_url)
     stmt_repo = (
         insert(Repositories)
         .values(repo_owner=repo_owner, repo_name=repo_name)
         .on_conflict_do_update(
             index_elements=[Repositories.repo_owner, Repositories.repo_name],
-            set_={"repo_owner": repo_owner} # dummy update so repo_id is always returned
+            set_={
+                "repo_owner": repo_owner
+            },  # dummy update so repo_id is always returned
         )
         .returning(Repositories.repo_id)
     )
@@ -42,10 +41,7 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
     stmt_report = (
         insert(Reports)
         .values(repo_id=repo_id, **report)
-        .on_conflict_do_update(
-            index_elements=[Reports.repo_id],
-            set_=report
-        )
+        .on_conflict_do_update(index_elements=[Reports.repo_id], set_=report)
         .returning(Reports.report_id)
     )
     session.execute(stmt_report).scalar()
@@ -53,7 +49,7 @@ async def create_postgres_report(repo_url: str, report: dict, session: Session) 
 
 
 def get_postgres_report(repo_url: str, session: Session) -> Reports | None:
-    owner, repo_name = github_client.get_owner_and_reponame(repo_url)
+    owner, repo_name = helpers.get_owner_and_repo(repo_url)
 
     repo_id = (
         session.query(Repositories.repo_id)
@@ -62,15 +58,11 @@ def get_postgres_report(repo_url: str, session: Session) -> Reports | None:
     )
 
     report_id = (
-        session.query(Reports.report_id)
-        .filter(Reports.repo_id == repo_id)
-        .scalar()
+        session.query(Reports.report_id).filter(Reports.repo_id == repo_id).scalar()
     )
 
     postgres_report = (
-        session.query(Reports)
-        .filter(Reports.report_id == report_id)
-        .one_or_none()
+        session.query(Reports).filter(Reports.report_id == report_id).one_or_none()
     )
 
     return postgres_report
@@ -135,8 +127,8 @@ async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
         "code_churn": json.loads(redis_report["code_churn"]),
         "issues_close_time": json.loads(redis_report["issues_close_time"]),
         "pulls_close_time": json.loads(redis_report["pulls_close_time"]),
-        "created_at": analysis_helpers.parse_timestamp(redis_report["created_at"]),
-        "last_updated": analysis_helpers.parse_timestamp(redis_report["last_updated"]),
+        "created_at": helpers.parse_timestamp(redis_report["created_at"]),
+        "last_updated": helpers.parse_timestamp(redis_report["last_updated"]),
     }
 
     return parsed_report
@@ -162,7 +154,8 @@ async def update_redis_report(
     await r.hset(redis_report_id, mapping=mapping)
     await r.expire(redis_report_id, ttl)
 
+
 # TODO: move or get rid of this
 def get_redis_report_id(repo_url) -> str:
-    owner, repo_name = github_client.get_owner_and_reponame(repo_url)
+    owner, repo_name = helpers.get_owner_and_repo(repo_url)
     return f"{owner}:{repo_name}"

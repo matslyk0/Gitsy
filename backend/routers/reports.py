@@ -1,5 +1,6 @@
 import backend.crud as crud
 import backend.schemas as schemas
+import backend.github_client as github_client
 import backend.analysis_engine as analysis_engine
 
 from fastapi import APIRouter
@@ -10,6 +11,8 @@ router = APIRouter()
 
 @router.get("/create-report/generate", response_model=schemas.ReportOut)
 async def create_report(repo_url: str, redis_host: str = "redis-db", ttl: int = 3600):
+    await github_client.verify_url(repo_url)
+
     repo_last_updated = await analysis_engine.get_last_updated(repo_url)
 
     async with redis_context(host=redis_host, port=6379, decode_responses=True) as r:
