@@ -1,7 +1,7 @@
 import json
 import redis.asyncio as redis
 import backend.helpers as helpers
-import backend.analysis_helpers as analysis_helpers
+import backend.helpers as helpers
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
@@ -127,8 +127,8 @@ async def get_redis_report(redis_report_id: str, r: redis.Redis) -> dict | None:
         "code_churn": json.loads(redis_report["code_churn"]),
         "issues_close_time": json.loads(redis_report["issues_close_time"]),
         "pulls_close_time": json.loads(redis_report["pulls_close_time"]),
-        "created_at": analysis_helpers.parse_timestamp(redis_report["created_at"]),
-        "last_updated": analysis_helpers.parse_timestamp(redis_report["last_updated"]),
+        "created_at": helpers.parse_timestamp(redis_report["created_at"]),
+        "last_updated": helpers.parse_timestamp(redis_report["last_updated"]),
     }
 
     return parsed_report

@@ -11,14 +11,14 @@ from backend.exceptions import GitHubAPIError, GitHubTimeOutError
 
 """
 for script-only testing
-"""
+
 from dotenv import load_dotenv
 
 load_dotenv()
 import asyncio
 import json
 import requests
-
+"""
 
 # loaded in docker compose - dev/test: from .env, CI/prod: from GitHub Secrets
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")

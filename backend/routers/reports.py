@@ -3,7 +3,7 @@ import backend.schemas as schemas
 import backend.github_client as github_client
 import backend.analysis_engine as analysis_engine
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from backend.database import postgres_context, redis_context
 
 router = APIRouter()

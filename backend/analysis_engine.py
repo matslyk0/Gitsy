@@ -1,6 +1,6 @@
 import asyncio
 import backend.github_client as github_client
-import backend.analysis_helpers as analysis_helpers
+import backend.helpers as helpers
 
 from datetime import datetime, timedelta
 from backend.exceptions import (
@@ -35,10 +35,10 @@ async def get_commit_frequency(repo_url: str) -> float:
         raise InsufficientCommitsError()
 
     first_timestamp = commits[-1]["commit"]["author"]["date"]
-    first_timestamp = analysis_helpers.parse_timestamp(first_timestamp)
+    first_timestamp = helpers.parse_timestamp(first_timestamp)
 
     latest_timestamp = commits[0]["commit"]["author"]["date"]
-    latest_timestamp = analysis_helpers.parse_timestamp(latest_timestamp)
+    latest_timestamp = helpers.parse_timestamp(latest_timestamp)
 
     difference = latest_timestamp - first_timestamp
     total_hours = difference / timedelta(hours=1)
@@ -167,7 +167,7 @@ async def get_last_updated(repo_url: str) -> datetime:
     commits = await github_client.get_commits(repo_url)
     latest_commit = commits[0]
     latest_timestamp = latest_commit["commit"]["author"]["date"]
-    return analysis_helpers.parse_timestamp(latest_timestamp)
+    return helpers.parse_timestamp(latest_timestamp)
 
 
 async def create_report(repo_url: str) -> dict:
