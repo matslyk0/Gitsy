@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import gitsyLogoPic from "../../assets/gitsyLogo.jpg";
+import gitsyLogoPic from "../../assets/gitsyLogo.png";
 import styles from "./Banner.module.css";
 
 function GitsyLogo() {

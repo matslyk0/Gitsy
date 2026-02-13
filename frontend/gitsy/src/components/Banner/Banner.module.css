@@ -4,17 +4,15 @@
   border: 0px solid white; /* for debugging */
   display: flex;
   justify-content: space-between;
-  padding: 5px;
+  padding: 20px;
 }
 
 .gitsyLogo {
   border: 0px;
-  border-radius: 35%;
   cursor: pointer;
   line-height: 0px;
   padding: 0px;
 }
 .gitsyLogoPic {
-  border-radius: 35%;
-  height: 50px;
+  height: 30px;
 }
