@@ -6,19 +6,10 @@ import Footer from "../../components/Footer/Footer.jsx";
 import styles from "./Home.module.css";
 
 export default function Home() {
-  const mainStyles = {
-    justifyContent: "center",
-    display: "flex",
-    alignItems: "center",
-    flex: "1",
-    flexDirection: "column",
-    border: "0px solid white" /* for debugging */,
-  };
-
   return (
     <>
       <Banner />
-      <main style={mainStyles}>
+      <main className={styles.mainContent}>
         <div className={styles.welcome}>
           <h1>Welcome to Gitsy!</h1>
         </div>

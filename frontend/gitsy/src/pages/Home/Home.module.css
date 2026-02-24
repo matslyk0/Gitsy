@@ -6,6 +6,18 @@
   justify-content: center;
 }
 
+.mainContent {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  border: 0px solid white; /* for debugging */
+  width: min(100%, 1400px);
+  margin: 0 auto;
+  min-height: calc(100dvh - 70px);
+}
+
 .welcome {
   border: 0px solid white /* for debugging */;
   text-align: center;

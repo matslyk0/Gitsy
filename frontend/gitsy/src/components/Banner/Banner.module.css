@@ -1,10 +1,11 @@
 .banner {
   align-items: center;
-  background-color: rgb(60, 60, 100);
-  border: 0px solid white; /* for debugging */
+  background-color: rgb(20, 20, 20);
+  border-bottom: 1px solid rgb(60, 60, 100); /* for debugging */
   display: flex;
+  height: 70px;
   justify-content: space-between;
-  padding: 20px;
+  padding: 20px max(20px, calc((100% - 1400px) / 2));
 }
 
 .gitsyLogo {
