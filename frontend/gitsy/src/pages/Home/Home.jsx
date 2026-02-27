@@ -10,13 +10,15 @@ export default function Home() {
     <>
       <Banner />
       <main className={styles.mainContent}>
-        <div className={styles.welcome}>
-          <h1>Welcome to Gitsy!</h1>
+        <div className={styles.welcomeBox}>
+          <h1>GitHub Repository Analysis</h1>
+          <p>Repository health at a glance, in a single click.</p>
+          <div className={styles.mainButtons}>
+            <GetStartedButton />
+            <CreateReportButton />
+          </div>
         </div>
-        <div className={styles.mainPageButtons}>
-          <GetStartedButton />
-          <CreateReportButton />
-        </div>
+        <div className={styles.sampleReport} />
       </main>
       <Footer />
     </>
