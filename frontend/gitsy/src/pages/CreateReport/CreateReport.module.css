@@ -55,11 +55,33 @@
 
 .createReportHeader {
   color: white;
-  border: 1px solid white; /* for debugging */
   font-size: 4em;
-  font-family: Helvetica, sans-serif;
+  font-family: Roboto, sans-serif;
   padding: 20px;
   text-align: center;
+}
+
+.createAnotherButton {
+  align-items: center;
+  background-color: white;
+  border-radius: 15px;
+  color: rgb(10, 10, 10);
+  cursor: pointer;
+  display: flex;
+  font-size: 1.2em;
+  font-family: Roboto, sans-serif;
+  height: 45px;
+  justify-content: center;
+  margin-top: 10px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition-duration: 0.15s;
+  transition-timing-function: ease-in-out;
+  width: 150px;
+}
+.createAnotherButton:hover {
+  box-shadow: 0px 0px 5px white;
 }
 
 .loadingWheelDiv,

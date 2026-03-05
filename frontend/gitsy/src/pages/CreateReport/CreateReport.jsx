@@ -71,7 +71,12 @@ export default function CreateReport() {
         {reportData ? (
           <>
             <Report reportData={reportData} ownerAndName={ownerAndName} />
-            <button onClick={() => setReportData(null)}>Create Another</button>
+            <button
+              className={styles.createAnotherButton}
+              onClick={() => setReportData(null)}
+            >
+              Create Another
+            </button>
           </>
         ) : (
           <>
