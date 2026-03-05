@@ -1,7 +1,7 @@
 .card {
-  background-color: rgb(90, 90, 150);
-  border: 0px solid white; /* for debugging */
-  border-radius: 10px;
+  background-color: rgb(20, 20, 20);
+  border: 1px solid rgb(90, 90, 180);
+  border-radius: 20px;
   container-type: inline-size;
   display: flex;
   flex: 1;
@@ -12,11 +12,12 @@
   padding: 20px;
 }
 .card h1 {
-  border: 0px solid white; /* for debugging */
+  font-family: Roboto, sans-serif;
+  font-size: 2em;
   margin: 0;
 }
 .card div {
-  border: 0px solid white; /* for debugging */
-  font-family: Helvetica, sans-serif;
-  font-size: clamp(1em, 2cqi, 2em);
+  color: rgb(240, 240, 240);
+  font-family: Roboto, sans-serif;
+  font-size: 1em;
 }
