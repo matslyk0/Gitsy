@@ -14,8 +14,7 @@
   flex: 1;
   flex-direction: column;
   justify-content: center;
-  margin: 20px;
-  max-width: 700px;
+  margin: 0px;
   min-width: 300px;
   padding: 10px;
   text-align: left;
@@ -41,12 +40,10 @@
   margin: 0;
 }
 
-.sampleReport {
-  border: 1px solid rgb(60, 60, 100) /* placeholder */;
-  border-radius: 20px;
-  margin: 20px;
-  min-height: 700px;
-  max-width: 600px;
-  min-width: 300px;
+.sampleReportDiv {
+  align-items: center;
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  padding: 20px;
 }
