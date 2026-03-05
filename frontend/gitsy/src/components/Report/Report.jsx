@@ -29,42 +29,37 @@ export default function Report({ ownerAndName, reportData }) {
         <h1>{ownerAndName}</h1>
       </div>
 
-      <div className={styles.cardGrid}>
-        <Card
-          title={formatTitle(
-            commitFrequency,
-            (metricData) => `${metricData.toFixed(1)} hours`,
-          )}
-          content={formatContent(commitFrequency, "between Commits.")}
-        />
-        <Card
-          title={formatTitle(
-            issuesCloseTime,
-            (metricData) => `${metricData.toFixed(1)} hours`,
-          )}
-          content={formatContent(issuesCloseTime, "between closed Issues.")}
-        />
-        <Card
-          title={formatTitle(
-            pullsCloseTime,
-            (metricData) => `${metricData.toFixed(1)} hours`,
-          )}
-          content={formatContent(
-            pullsCloseTime,
-            "between closed Pull Requests.",
-          )}
-        />
-        <Card
-          title={formatTitle(
-            codeChurn,
-            (metricData) => `${metricData.additions - metricData.deletions}`,
-          )}
-          content={formatContent(
-            codeChurn,
-            "line changes across the repository.",
-          )}
-        />
-      </div>
+      <Card
+        title={formatTitle(
+          commitFrequency,
+          (metricData) => `${metricData.toFixed(1)} hours`,
+        )}
+        content={formatContent(commitFrequency, "between Commits.")}
+      />
+      <Card
+        title={formatTitle(
+          issuesCloseTime,
+          (metricData) => `${metricData.toFixed(1)} hours`,
+        )}
+        content={formatContent(issuesCloseTime, "between closed Issues.")}
+      />
+      <Card
+        title={formatTitle(
+          pullsCloseTime,
+          (metricData) => `${metricData.toFixed(1)} hours`,
+        )}
+        content={formatContent(pullsCloseTime, "between closed Pull Requests.")}
+      />
+      <Card
+        title={formatTitle(
+          codeChurn,
+          (metricData) => `${metricData.additions - metricData.deletions}`,
+        )}
+        content={formatContent(
+          codeChurn,
+          "line changes across the repository.",
+        )}
+      />
     </div>
   );
 }

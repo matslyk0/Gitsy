@@ -40,8 +40,3 @@
 .reportHeader button:hover {
   background-color: rgb(105, 105, 175);
 }
-
-.cardGrid {
-  display: flex;
-  flex-direction: column;
-}
