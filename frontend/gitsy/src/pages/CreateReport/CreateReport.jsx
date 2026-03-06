@@ -27,8 +27,8 @@ function ReportForm({ url, setUrl, onAnalyse, disabled }) {
 
 export default function CreateReport() {
   const [url, setUrl] = useState("");
-  const [reportData, setReportData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
   const [ownerAndName, setOwnerAndName] = useState("owner/name");
 
   async function onAnalyse() {
@@ -65,7 +65,7 @@ export default function CreateReport() {
       <Banner />
       <main className={styles.mainContent}>
         {!reportData && (
-          <h1 className={styles.createReportHeader}>Create a Report Here</h1>
+          <h1 className={styles.createReportHeader}>Create a Report</h1>
         )}
 
         {reportData ? (
