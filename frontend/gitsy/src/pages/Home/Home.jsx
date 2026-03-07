@@ -3,17 +3,16 @@ import GetStartedButton from "../../components/GetStartedButton/GetStartedButton
 import CreateReportButton from "../../components/CreateReportButton/CreateReportButton.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
 import Report from "../../components/Report/Report.jsx";
-
 import styles from "./Home.module.css";
 
-export default function Home() {
-  const sampleReportData = {
-    commit_frequency: { status_code: 200, data: 10.3 },
-    issues_close_time: { status_code: 200, data: 265 },
-    pulls_close_time: { status_code: 200, data: 0.1 },
-    code_churn: { status_code: 200, data: { additions: 1000, deletions: 100 } },
-  };
+const sampleReportData = {
+  commit_frequency: { status_code: 200, data: 10.3 },
+  issues_close_time: { status_code: 200, data: 265 },
+  pulls_close_time: { status_code: 200, data: 0.1 },
+  code_churn: { status_code: 200, data: { additions: 1000, deletions: 100 } },
+};
 
+export default function Home() {
   return (
     <>
       <Banner />
