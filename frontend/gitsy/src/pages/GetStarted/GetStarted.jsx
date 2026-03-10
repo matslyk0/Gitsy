@@ -16,32 +16,31 @@ export default function GetStarted() {
           <section>
             <h2 className={styles.question}>What does it do?</h2>
             <p className={styles.answer}>
-              Gitsy calculates several metrics for any public GitHub repository
-              so you can get a quick understanding of its activity.
+              Gitsy calculates metrics for public GitHub repositories so you can
+              get a concise summary of its activity.
             </p>
           </section>
 
           <section>
             <h2 className={styles.question}>How does it work?</h2>
             <p className={styles.answer}>
-              Gitsy uses the GitHub API to fetch repository data, calculates the
-              metrics, and presents it to you in a report.
+              Gitsy uses the GitHub API to fetch repository data which is used
+              to calculate the report metrics.
             </p>
           </section>
 
           <section>
             <h2 className={styles.question}>How long does it take?</h2>
             <p className={styles.answer}>
-              Reports usually generate within a couple of minutes, depending on
-              the repository size, and if others are using the site.
+              Please give up to 2 minutes for report generation.
             </p>
           </section>
 
           <section>
             <h2 className={styles.question}>Do I need an account?</h2>
             <p className={styles.answer}>
-              You don't need any accounts to make a report. In the future,
-              accounts will be the recommended way to use Gitsy.
+              Not at the moment! In the future, accounts will be the recommended
+              way to use Gitsy.
             </p>
           </section>
 
