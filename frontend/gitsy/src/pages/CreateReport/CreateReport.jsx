@@ -63,7 +63,7 @@ export default function CreateReport() {
   return (
     <>
       <Banner />
-      <main className={styles.mainContent}>
+      <main className={styles.mainConfig}>
         {!reportData && (
           <h1 className={styles.createReportHeader}>Create a Report</h1>
         )}

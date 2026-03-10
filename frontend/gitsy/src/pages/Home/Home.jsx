@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <>
       <Banner />
-      <main className={styles.mainContent}>
+      <main>
         <div className={styles.welcomeBox}>
           <h1>GitHub Repository Analysis</h1>
           <p>Repository health at a glance, in a single click.</p>

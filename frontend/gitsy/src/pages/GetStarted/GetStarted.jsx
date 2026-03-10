@@ -7,7 +7,7 @@ export default function GetStarted() {
   return (
     <>
       <Banner />
-      <main className={styles.main}>
+      <main className={styles.mainConfig}>
         <div className={styles.getStarted}>
           <h1 className={styles.header}>
             Welcome to Gitsy, the repository analysis tool.

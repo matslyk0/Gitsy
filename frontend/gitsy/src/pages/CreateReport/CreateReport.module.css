@@ -50,13 +50,9 @@
   transform: scale(0.9);
 }
 
-.mainContent {
-  align-items: center;
-  display: flex;
-  flex: 1;
+.mainConfig {
   flex-direction: column;
   justify-content: center;
-  min-height: calc(100dvh - 70px);
 }
 
 .createReportHeader {

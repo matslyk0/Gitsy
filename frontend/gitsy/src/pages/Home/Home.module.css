@@ -1,14 +1,3 @@
-.mainContent {
-  align-items: center;
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  width: min(100%, 1400px);
-  margin: 0 auto;
-  min-height: calc(100dvh - 70px);
-}
-
 .welcomeBox {
   display: flex;
   flex: 1;
